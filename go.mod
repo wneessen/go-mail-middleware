@@ -4,7 +4,7 @@
 
 module github.com/wneessen/go-mail-middleware
 
-go 1.19
+go 1.16
 
 require (
 	github.com/wneessen/go-mail v0.2.9
