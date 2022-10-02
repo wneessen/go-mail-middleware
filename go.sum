@@ -1,4 +1,4 @@
-github.com/wneessen/go-mail v0.2.8 h1:1XZs2qLnClhDRUURRkSvwtS0JL6C1nP7xDRJf9S/Iv0=
-github.com/wneessen/go-mail v0.2.8/go.mod h1:m25lkU2GYQnlVr6tdwK533/UXxo57V0kLOjaFYmub0E=
+github.com/wneessen/go-mail v0.2.9 h1:HtjvJn0VBKOl9ptnWwCXgX8F8zQlwJL0cdqx36xU6Tg=
+github.com/wneessen/go-mail v0.2.9/go.mod h1:m25lkU2GYQnlVr6tdwK533/UXxo57V0kLOjaFYmub0E=
 golang.org/x/text v0.3.7 h1:olpwvP2KacW1ZWvsR7uQhoyTYvKAupfQrRGBFM352Gk=
 golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
