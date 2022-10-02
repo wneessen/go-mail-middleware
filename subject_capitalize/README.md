@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2022 Winni Neessen <winni@neessen.dev>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 ## Capitalize your subject based on a given language
 
 This is a simple middlware that makes use of the powerful [golang.org/x/text/cases](https://golang.org/x/text/cases)
