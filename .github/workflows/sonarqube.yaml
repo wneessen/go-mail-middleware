@@ -26,7 +26,7 @@ jobs:
           
       - name: Run unit Tests
         run: |
-          go test -v -race --coverprofile=./cov.out ./...
+          go mod download && go test -v -race --coverprofile=./cov.out ./...
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
