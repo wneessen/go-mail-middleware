@@ -6,6 +6,7 @@ SPDX-License-Identifier: CC0-1.0
 
 # A collection of message middlewares for go-mail
 [![GoDoc](https://godoc.org/github.com/wneessen/go-mail-middleware?status.svg)](https://pkg.go.dev/github.com/wneessen/go-mail-middleware)
+[![codecov](https://codecov.io/gh/wneessen/go-mail-middleware/branch/main/graph/badge.svg?token=1XC87Z6QX4)](https://codecov.io/gh/wneessen/go-mail-middleware)
 [![Go Report Card](https://goreportcard.com/badge/github.com/wneessen/go-mail-middleware)](https://goreportcard.com/report/github.com/wneessen/go-mail-middleware)
 [![#go-mail on Discord](https://img.shields.io/badge/Discord-%23gomail-blue.svg)](https://discord.gg/zSUeBrsFPB)
 [![REUSE status](https://api.reuse.software/badge/github.com/wneessen/go-mail-middleware)](https://api.reuse.software/info/github.com/wneessen/go-mail-middleware)
