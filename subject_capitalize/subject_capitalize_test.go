@@ -31,3 +31,11 @@ func TestMiddleware_Handle(t *testing.T) {
 		t.Errorf("middleware failed. Expected: %q in subject, got: %q", "This Is A Test", buf.String())
 	}
 }
+
+func TestMiddleware_HandleEmpty(t *testing.T) {
+	m := mail.NewMsg(mail.WithMiddleware(New(language.English)))
+	buf := bytes.Buffer{}
+	if _, err := m.WriteTo(&buf); err != nil {
+		t.Errorf("failed to write mail message to buffer: %s", err)
+	}
+}
