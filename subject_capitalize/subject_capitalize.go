@@ -24,6 +24,9 @@ func New(l language.Tag) *Middleware {
 // Handle is the handler method that satisfies the mail.Middleware interface
 func (c Middleware) Handle(m *mail.Msg) *mail.Msg {
 	cs := m.GetGenHeader(mail.HeaderSubject)
+	if len(cs) <= 0 {
+		return m
+	}
 	cp := cases.Title(c.l)
 	m.Subject(cp.String(cs[0]))
 	return m
