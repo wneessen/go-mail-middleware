@@ -6,7 +6,6 @@ package subcap
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -16,8 +15,8 @@ import (
 
 func TestNew(t *testing.T) {
 	mw := New(language.English)
-	if fmt.Sprintf("%s", mw.l) != "en" {
-		t.Errorf("New() failed. Expected language: %q, got: %q", "en", fmt.Sprintf("%s", mw.l))
+	if mw.l.String() != "en" {
+		t.Errorf("New() failed. Expected language: %q, got: %q", "en", mw.l.String())
 	}
 }
 
