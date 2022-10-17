@@ -7,10 +7,11 @@ package subcap
 import (
 	"bytes"
 	"fmt"
-	"github.com/wneessen/go-mail"
-	"golang.org/x/text/language"
 	"strings"
 	"testing"
+
+	"github.com/wneessen/go-mail"
+	"golang.org/x/text/language"
 )
 
 func TestNew(t *testing.T) {
