@@ -6,17 +6,17 @@ package subcap
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/wneessen/go-mail"
-	"golang.org/x/text/language"
 	"strings"
 	"testing"
+
+	"github.com/wneessen/go-mail"
+	"golang.org/x/text/language"
 )
 
 func TestNew(t *testing.T) {
 	mw := New(language.English)
-	if fmt.Sprintf("%s", mw.l) != "en" {
-		t.Errorf("New() failed. Expected language: %q, got: %q", "en", fmt.Sprintf("%s", mw.l))
+	if mw.l.String() != "en" {
+		t.Errorf("New() failed. Expected language: %q, got: %q", "en", mw.l.String())
 	}
 }
 
