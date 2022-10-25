@@ -15,6 +15,8 @@ type Middleware struct {
 	l language.Tag
 }
 
+const Type mail.MiddlewareType = "subcap"
+
 // New returns a new Middleware and can be used with the mail.WithMiddleware method. It takes a
 // language.Tag as input
 func New(l language.Tag) *Middleware {
@@ -30,4 +32,9 @@ func (c Middleware) Handle(m *mail.Msg) *mail.Msg {
 	cp := cases.Title(c.l)
 	m.Subject(cp.String(cs[0]))
 	return m
+}
+
+// Type returns the MiddlewareType for this Middleware
+func (c Middleware) Type() mail.MiddlewareType {
+	return Type
 }
