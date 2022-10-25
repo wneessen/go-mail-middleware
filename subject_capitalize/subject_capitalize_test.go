@@ -39,3 +39,10 @@ func TestMiddleware_HandleEmpty(t *testing.T) {
 		t.Errorf("failed to write mail message to buffer: %s", err)
 	}
 }
+
+func TestMiddleware_Type(t *testing.T) {
+	mw := New(language.English)
+	if mw.Type() != Type {
+		t.Errorf("failed to call Type(). Expected: %s, got: %s", Type, mw.Type())
+	}
+}
