@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto"
+	"crypto/ed25519"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -16,7 +17,6 @@ import (
 	"strings"
 
 	"github.com/emersion/go-msgauth/dkim"
-	_ "github.com/emersion/go-msgauth/dkim"
 	"github.com/wneessen/go-mail"
 )
 
@@ -36,6 +36,7 @@ const (
 	errInvalidHashAlgo         = "unsupported hashing algorithm: %s"
 	errParseKeyFailed          = "failed to parse private key: %s"
 	errParseHeaderFailed       = "failed to parse mail message header: %s"
+	errNotEd25519Key           = "provided key is not of type Ed25519"
 )
 
 // NewFromRSAKey returns a new Middlware from a given RSA private key
@@ -48,6 +49,27 @@ func NewFromRSAKey(k []byte, sc *SignerConfig) (*Middleware, error) {
 	pk, err := x509.ParsePKCS1PrivateKey(dp.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf(errParseKeyFailed, err)
+	}
+	return newMiddleware(sc, pk)
+}
+
+// NewFromEd25519Key returns a new Signer instance from a given PEM encoded Ed25519
+// private key
+func NewFromEd25519Key(k []byte, sc *SignerConfig) (*Middleware, error) {
+	var pk ed25519.PrivateKey
+	dp, _ := pem.Decode(k)
+	if dp == nil {
+		return nil, fmt.Errorf(errDecodePEMFailed)
+	}
+	apk, err := x509.ParsePKCS8PrivateKey(dp.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf(errParseKeyFailed, err)
+	}
+	switch tpk := apk.(type) {
+	case ed25519.PrivateKey:
+		pk = tpk
+	default:
+		return nil, fmt.Errorf(errNotEd25519Key)
 	}
 	return newMiddleware(sc, pk)
 }
@@ -100,7 +122,8 @@ func newMiddleware(sc *SignerConfig, cs crypto.Signer) (*Middleware, error) {
 	return &Middleware{so: so}, nil
 }
 
-// extractDKIMHeader is a helper method to extract the DKIM mail headers from mail.Msg
+// extractDKIMHeader is a helper method to extract the generated DKIM mail header
+// from output of the mail.Msg
 func extractDKIMHeader(br *bufio.Reader) (string, error) {
 	var h []string
 	for {
