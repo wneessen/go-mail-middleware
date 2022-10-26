@@ -10,8 +10,10 @@ import (
 	"crypto"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
-	"net/textproto"
+	"io"
+	"strings"
 
 	"github.com/emersion/go-msgauth/dkim"
 	_ "github.com/emersion/go-msgauth/dkim"
@@ -62,15 +64,14 @@ func (d Middleware) Handle(m *mail.Msg) *mail.Msg {
 	if err := dkim.Sign(&obuf, &ibuf, d.so); err != nil {
 		return m
 	}
-	x := obuf.String()
 	br := bufio.NewReader(&obuf)
 	h, err := extractDKIMHeader(br)
 	if err != nil {
 		return m
 	}
-	m.SetHeader("DKIM-Signature", h)
-	fmt.Printf("ORIGNAL:\n%s\n\n", x)
-
+	if h != "" {
+		m.SetHeaderPreformatted("DKIM-Signature", h)
+	}
 	return m
 }
 
@@ -101,8 +102,36 @@ func newMiddleware(sc *SignerConfig, cs crypto.Signer) (*Middleware, error) {
 
 // extractDKIMHeader is a helper method to extract the DKIM mail headers from mail.Msg
 func extractDKIMHeader(br *bufio.Reader) (string, error) {
-	t := textproto.NewReader(br)
-	mh, err := t.ReadMIMEHeader()
-	h := mh.Values("DKIM-Signature")
-	return h[0], err
+	var h []string
+	for {
+		l, err := br.ReadString('\n')
+		if err != nil {
+			switch {
+			case errors.Is(err, io.EOF):
+				break
+			default:
+				return "", fmt.Errorf(errParseHeaderFailed, err)
+			}
+		}
+		if len(l) == 0 {
+			break
+		}
+		if len(l) == 2 && (l[0] == '\r' && l[1] == '\n') {
+			break
+		}
+		if len(h) > 0 && (l[0] == ' ' || l[0] == '\t') {
+			h[len(h)-1] += l
+		} else {
+			h = append(h, l)
+		}
+	}
+	for i := range h {
+		s := strings.SplitN(h[i], ": ", 2)
+		if len(s) == 2 && s[0] == "DKIM-Signature" {
+			hv := s[1]
+			hv = strings.TrimRight(hv, mail.SingleNewLine)
+			return hv, nil
+		}
+	}
+	return "", nil
 }
