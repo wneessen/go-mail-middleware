@@ -23,4 +23,5 @@ while keeping `go-mail` itself dependancy free.
 
 ### List of currently supported middlewares
 
+* [dkim](dkim): DKIM (DomainKeys Identified Mail) middleware to sign mail messages
 * [subject_capitalize](subject_capitalize): Capitalizes the subject of the message matching the given language
