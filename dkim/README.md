@@ -4,28 +4,65 @@ SPDX-FileCopyrightText: 2022 Winni Neessen <winni@neessen.dev>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-## Domain key
+## DKIM (DomainKeys Identified Mail) middleware
 
-TBD
+This middleware allows the DKIM signing of mails with go-mail using the 
+[github.com/emersion/go-msgauth](https://github.com/emersion/go-msgauth) library as basis.
+In case you are using other middlewares, this should be the last to be applies, since
+alteration of the message after signing it, the verification will fail.
 
 ### Example
+
 ```go
 package main
 
 import (
-	"fmt"
+	"log"
+
 	"github.com/wneessen/go-mail"
-	"github.com/wneessen/go-mail-middleware/subject_capitalize"
-	"golang.org/x/text/language"
-	"os"
+	"github.com/wneessen/go-mail-middleware/dkim"
 )
 
+const rsaKey = `-----BEGIN RSA PRIVATE KEY-----
+MIICX[...]
+-----END RSA PRIVATE KEY-----`
+
 func main() {
-	m := mail.NewMsg(mail.WithMiddleware(subcap.New(language.English)))
-	m.Subject("this is a test message")
-	if err := m.WriteToFile("testmail.eml"); err != nil {
-		fmt.Printf("failed to write mail message to file: %s\n", err)
-		os.Exit(1)
+	// First we need a config for our DKIM signer middleware
+	sc, err := dkim.NewConfig("example.com", "mail",
+		dkim.WithHeaderFields(mail.HeaderDate.String(),
+			mail.HeaderFrom.String(), mail.HeaderTo.String(),
+			mail.HeaderSubject.String()),
+	)
+	if err != nil {
+		log.Fatalf("failed to create new config: %s", err)
+	}
+
+	// We then create a new middleware based of our RSA key and the config
+	// we just created
+	mw, err := dkim.NewFromRSAKey([]byte(rsaKey), sc)
+	if err != nil {
+		log.Fatalf("failed to create new middleware from RSA key: %s", err)
+	}
+
+	// Finally we create a new mail.Msg with our middleware assigned
+	m := mail.NewMsg(mail.WithMiddleware(mw))
+	if err := m.From("toni.sender@example.com"); err != nil {
+		log.Fatalf("failed to set From address: %s", err)
+	}
+	if err := m.To("tina.recipient@example.com"); err != nil {
+		log.Fatalf("failed to set To address: %s", err)
+	}
+	m.Subject("This is my first mail with go-mail!")
+	m.SetBodyString(mail.TypeTextPlain, "Do you like this mail? I certainly do!")
+	c, err := mail.NewClient("smtp.example.com", mail.WithPort(25),
+		mail.WithSMTPAuth(mail.SMTPAuthPlain),
+		mail.WithUsername("my_username"), mail.WithPassword("extremely_secret_pass"))
+	if err != nil {
+		log.Fatalf("failed to create mail client: %s", err)
+	}
+	if err := c.DialAndSend(m); err != nil {
+		log.Fatalf("failed to send mail: %s", err)
 	}
 }
 ```

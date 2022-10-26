@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/emersion/go-msgauth/dkim"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -68,7 +70,7 @@ func TestNewConfig_WithSetHashAlgo(t *testing.T) {
 		f  bool
 	}{
 		{"SHA-256", crypto.SHA256, false},
-		{"SHA-1", crypto.SHA1, false},
+		{"SHA-1", crypto.SHA1, true},
 		{"MD5", crypto.MD5, true},
 	}
 
@@ -100,47 +102,47 @@ func TestNewConfig_WithSetHashAlgo(t *testing.T) {
 }
 
 func TestNewConfig_WitSethCano(t *testing.T) {
-	c, err := NewConfig(TestDomain, TestSelector, WithHeaderCanonicalization(CanonicalizationSimple),
-		WithBodyCanonicalization(CanonicalizationSimple))
+	c, err := NewConfig(TestDomain, TestSelector, WithHeaderCanonicalization(dkim.CanonicalizationSimple),
+		WithBodyCanonicalization(dkim.CanonicalizationSimple))
 	if err != nil {
 		t.Errorf("NewConfig failed: %s", err)
 	}
-	if c.CanonicalizationHeader != CanonicalizationSimple {
-		t.Errorf("WithHeaderCanonicalization failed. Expected: %s, got: %s", CanonicalizationSimple,
+	if c.CanonicalizationHeader != dkim.CanonicalizationSimple {
+		t.Errorf("WithHeaderCanonicalization failed. Expected: %s, got: %s", dkim.CanonicalizationSimple,
 			c.CanonicalizationHeader)
 	}
-	if c.CanonicalizationBody != CanonicalizationSimple {
-		t.Errorf("WithBodyCanonicalization failed. Expected: %s, got: %s", CanonicalizationSimple,
+	if c.CanonicalizationBody != dkim.CanonicalizationSimple {
+		t.Errorf("WithBodyCanonicalization failed. Expected: %s, got: %s", dkim.CanonicalizationSimple,
 			c.CanonicalizationBody)
 	}
-	if err := c.SetHeaderCanonicalization(CanonicalizationRelaxed); err != nil {
+	if err := c.SetHeaderCanonicalization(dkim.CanonicalizationRelaxed); err != nil {
 		t.Errorf("SetHeaderCanonicalization failed: %s", err)
 	}
-	if err := c.SetBodyCanonicalization(CanonicalizationRelaxed); err != nil {
+	if err := c.SetBodyCanonicalization(dkim.CanonicalizationRelaxed); err != nil {
 		t.Errorf("SetBodyCanonicalization failed: %s", err)
 	}
-	if c.CanonicalizationHeader != CanonicalizationRelaxed {
-		t.Errorf("SetHeaderCanonicalization failed. Expected: %s, got: %s", CanonicalizationRelaxed,
+	if c.CanonicalizationHeader != dkim.CanonicalizationRelaxed {
+		t.Errorf("SetHeaderCanonicalization failed. Expected: %s, got: %s", dkim.CanonicalizationRelaxed,
 			c.CanonicalizationHeader)
 	}
-	if c.CanonicalizationBody != CanonicalizationRelaxed {
-		t.Errorf("SetBodyCanonicalization failed. Expected: %s, got: %s", CanonicalizationRelaxed,
+	if c.CanonicalizationBody != dkim.CanonicalizationRelaxed {
+		t.Errorf("SetBodyCanonicalization failed. Expected: %s, got: %s", dkim.CanonicalizationRelaxed,
 			c.CanonicalizationBody)
 	}
-	if err := c.SetHeaderCanonicalization(2); err == nil {
+	if err := c.SetHeaderCanonicalization("invalid"); err == nil {
 		t.Errorf("SetHeaderCanonicalization was supposed to fail, but didn't")
 	}
-	if err := c.SetBodyCanonicalization(2); err == nil {
+	if err := c.SetBodyCanonicalization("invalid"); err == nil {
 		t.Errorf("SetBodyCanonicalization was supposed to fail, but didn't")
 	}
 }
 
 func TestNewConfig_WitCanoInvalid(t *testing.T) {
-	_, err := NewConfig(TestDomain, TestSelector, WithHeaderCanonicalization(2))
+	_, err := NewConfig(TestDomain, TestSelector, WithHeaderCanonicalization("invalid"))
 	if err == nil {
 		t.Errorf("NewConfig with invalid WithHeaderCanonalization was supposed to fail but didn't")
 	}
-	_, err = NewConfig(TestDomain, TestSelector, WithBodyCanonicalization(2))
+	_, err = NewConfig(TestDomain, TestSelector, WithBodyCanonicalization("invalid"))
 	if err == nil {
 		t.Errorf("NewConfig with invalid WithBodyCanonalization was supposed to fail but didn't")
 	}
