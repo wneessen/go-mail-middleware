@@ -13,6 +13,8 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/wneessen/go-mail v0.3.3 h1:mhqM18uWiBFA3TdfO2IyFfQ6dEj4kGKW1KQJJNSKLME=
 github.com/wneessen/go-mail v0.3.3/go.mod h1:m25lkU2GYQnlVr6tdwK533/UXxo57V0kLOjaFYmub0E=
+github.com/wneessen/go-mail v0.3.4 h1:75G6lojt3CxwSq73csMduxF7DJ3hLF2s2KJXJVDOr0k=
+github.com/wneessen/go-mail v0.3.4/go.mod h1:m25lkU2GYQnlVr6tdwK533/UXxo57V0kLOjaFYmub0E=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
