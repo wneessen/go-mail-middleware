@@ -150,7 +150,7 @@ func WithAUID(a string) SignerOption {
 func WithHeaderCanonicalization(c dkim.Canonicalization) SignerOption {
 	return func(sc *SignerConfig) error {
 		if !sc.CanonicalizationIsValid(c) {
-			return fmt.Errorf(errInvalidCanonicalization, c)
+			return fmt.Errorf("%s: %w", c, ErrInvalidCanonicalization)
 		}
 		sc.CanonicalizationHeader = c
 		return nil
@@ -161,7 +161,7 @@ func WithHeaderCanonicalization(c dkim.Canonicalization) SignerOption {
 func WithBodyCanonicalization(c dkim.Canonicalization) SignerOption {
 	return func(sc *SignerConfig) error {
 		if !sc.CanonicalizationIsValid(c) {
-			return fmt.Errorf(errInvalidCanonicalization, c)
+			return fmt.Errorf("%s: %w", c, ErrInvalidCanonicalization)
 		}
 		sc.CanonicalizationBody = c
 		return nil
@@ -172,7 +172,7 @@ func WithBodyCanonicalization(c dkim.Canonicalization) SignerOption {
 func WithExpiration(x time.Time) SignerOption {
 	return func(sc *SignerConfig) error {
 		if x.UnixNano() <= time.Now().UnixNano() {
-			return fmt.Errorf(errInvalidExpiration)
+			return ErrInvalidExpiration
 		}
 		sc.Expiration = x
 		return nil
@@ -183,7 +183,7 @@ func WithExpiration(x time.Time) SignerOption {
 func WithHashAlgo(ha crypto.Hash) SignerOption {
 	return func(sc *SignerConfig) error {
 		if !sc.HashAlgoIsValid(ha) {
-			return fmt.Errorf(errInvalidHashAlgo, ha.String())
+			return fmt.Errorf("%s: %w", ha.String(), ErrInvalidHashAlgo)
 		}
 		sc.HashAlgo = ha
 		return nil
@@ -202,7 +202,7 @@ func WithHeaderFields(fl ...string) SignerOption {
 			}
 		}
 		if !hf {
-			return fmt.Errorf(`the "From" field is required when a HeaderFields list is provided`)
+			return ErrFromRequired
 		}
 		return nil
 	}
@@ -216,7 +216,7 @@ func (sc *SignerConfig) SetAUID(a string) {
 // SetHeaderCanonicalization sets/overrides the Canonicalization of the SignerConfig
 func (sc *SignerConfig) SetHeaderCanonicalization(c dkim.Canonicalization) error {
 	if !sc.CanonicalizationIsValid(c) {
-		return fmt.Errorf(errInvalidCanonicalization, c)
+		return fmt.Errorf("%s: %w", c, ErrInvalidCanonicalization)
 	}
 	sc.CanonicalizationHeader = c
 	return nil
@@ -225,7 +225,7 @@ func (sc *SignerConfig) SetHeaderCanonicalization(c dkim.Canonicalization) error
 // SetBodyCanonicalization sets/overrides the Canonicalization of the SignerConfig
 func (sc *SignerConfig) SetBodyCanonicalization(c dkim.Canonicalization) error {
 	if !sc.CanonicalizationIsValid(c) {
-		return fmt.Errorf(errInvalidCanonicalization, c)
+		return fmt.Errorf("%s: %w", c, ErrInvalidCanonicalization)
 	}
 	sc.CanonicalizationBody = c
 	return nil
@@ -234,7 +234,7 @@ func (sc *SignerConfig) SetBodyCanonicalization(c dkim.Canonicalization) error {
 // SetExpiration sets/overrides the Expiration of the SignerConfig
 func (sc *SignerConfig) SetExpiration(x time.Time) error {
 	if x.UnixNano() <= time.Now().UnixNano() {
-		return fmt.Errorf(errInvalidExpiration)
+		return ErrInvalidExpiration
 	}
 	sc.Expiration = x
 	return nil
@@ -243,7 +243,7 @@ func (sc *SignerConfig) SetExpiration(x time.Time) error {
 // SetHashAlgo sets/override the hashing algorithm of the SignerConfig
 func (sc *SignerConfig) SetHashAlgo(ha crypto.Hash) error {
 	if !sc.HashAlgoIsValid(ha) {
-		return fmt.Errorf(errInvalidHashAlgo, ha.String())
+		return fmt.Errorf("%s: %w", ha.String(), ErrInvalidHashAlgo)
 	}
 	sc.HashAlgo = ha
 	return nil
@@ -259,7 +259,7 @@ func (sc *SignerConfig) SetHeaderFields(fl ...string) error {
 		}
 	}
 	if !hf {
-		return fmt.Errorf(`the "From" field is required when a HeaderFields list is provided`)
+		return ErrFromRequired
 	}
 	return nil
 }
@@ -277,8 +277,7 @@ func (sc *SignerConfig) HashAlgoIsValid(ha crypto.Hash) bool {
 // CanonicalizationIsValid returns true if a the provided Canonicalization is a valid value for the SignerConfig
 func (sc *SignerConfig) CanonicalizationIsValid(c dkim.Canonicalization) bool {
 	switch c {
-	case "simple":
-	case "relaxed":
+	case "simple", "relaxed":
 	default:
 		return false
 	}
@@ -288,7 +287,7 @@ func (sc *SignerConfig) CanonicalizationIsValid(c dkim.Canonicalization) bool {
 // SetSelector overrides the Selector of the SignerConfig
 func (sc *SignerConfig) SetSelector(s string) error {
 	if s == "" {
-		return fmt.Errorf(errEmptySelector)
+		return ErrEmptySelector
 	}
 	sc.Selector = s
 	return nil

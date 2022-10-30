@@ -28,15 +28,14 @@ type Middleware struct {
 // Type is the type of Middleware
 const Type mail.MiddlewareType = "dkim"
 
-const (
-	errDecodePEMFailed         = "failed to decode PEM block"
-	errEmptySelector           = "DKIM domain selector must not be empty"
-	errInvalidCanonicalization = "unsupported canonicalization type: %s"
-	errInvalidExpiration       = "expiration date must be in the future"
-	errInvalidHashAlgo         = "unsupported hashing algorithm: %s"
-	errParseKeyFailed          = "failed to parse private key: %s"
-	errParseHeaderFailed       = "failed to parse mail message header: %s"
-	errNotEd25519Key           = "provided key is not of type Ed25519"
+var (
+	ErrInvalidHashAlgo         = errors.New("unsupported hashing algorithm")
+	ErrInvalidCanonicalization = errors.New("unsupported canonicalization type")
+	ErrDecodePEMFailed         = errors.New("failed to decode PEM block")
+	ErrNotEd25519Key           = errors.New("provided key is not of type Ed25519")
+	ErrInvalidExpiration       = errors.New("expiration date must be in the future")
+	ErrEmptySelector           = errors.New("DKIM domain selector must not be empty")
+	ErrFromRequired            = errors.New(`the "From" field is required`)
 )
 
 // NewFromRSAKey returns a new Middlware from a given RSA private key
@@ -44,11 +43,11 @@ const (
 func NewFromRSAKey(k []byte, sc *SignerConfig) (*Middleware, error) {
 	dp, _ := pem.Decode(k)
 	if dp == nil {
-		return nil, fmt.Errorf(errDecodePEMFailed)
+		return nil, ErrDecodePEMFailed
 	}
 	pk, err := x509.ParsePKCS1PrivateKey(dp.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf(errParseKeyFailed, err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 	return newMiddleware(sc, pk)
 }
@@ -59,17 +58,17 @@ func NewFromEd25519Key(k []byte, sc *SignerConfig) (*Middleware, error) {
 	var pk ed25519.PrivateKey
 	dp, _ := pem.Decode(k)
 	if dp == nil {
-		return nil, fmt.Errorf(errDecodePEMFailed)
+		return nil, ErrDecodePEMFailed
 	}
 	apk, err := x509.ParsePKCS8PrivateKey(dp.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf(errParseKeyFailed, err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 	switch tpk := apk.(type) {
 	case ed25519.PrivateKey:
 		pk = tpk
 	default:
-		return nil, fmt.Errorf(errNotEd25519Key)
+		return nil, ErrNotEd25519Key
 	}
 	return newMiddleware(sc, pk)
 }
@@ -133,7 +132,7 @@ func extractDKIMHeader(br *bufio.Reader) (string, error) {
 			case errors.Is(err, io.EOF):
 				break
 			default:
-				return "", fmt.Errorf(errParseHeaderFailed, err)
+				return "", fmt.Errorf("failed to parse mail message header: %w", err)
 			}
 		}
 		if len(l) == 0 {
