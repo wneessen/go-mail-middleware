@@ -9,5 +9,5 @@ go 1.16
 require (
 	github.com/emersion/go-msgauth v0.6.6
 	github.com/wneessen/go-mail v0.3.5
-	golang.org/x/text v0.5.0
+	golang.org/x/text v0.6.0
 )
