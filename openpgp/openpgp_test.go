@@ -6,10 +6,12 @@ package openpgp
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/dhia-gharsallaoui/go-logger"
+	"golang.org/x/exp/slog"
+
 	"github.com/wneessen/go-mail"
 )
 
@@ -71,37 +73,34 @@ avSf
 
 func TestNewMiddleware(t *testing.T) {
 	mc := &MiddlewareConfig{
-		Certificate: []byte(Pubkey),
-		Logger: log.NewLogger(&log.LoggerConfiguration{
-			Prefix:    "",
-			Verbosity: log.WARN,
-		}),
+		PublicKey: []byte(Pubkey),
+		Logger:    slog.New(slog.NewJSONHandler(os.Stderr)),
 	}
 	mw := NewMiddleware(mc)
-	if len(mw.certificate) <= 0 {
-		t.Errorf("NewMiddleware failed. Expected certificate but got empty field")
+	if len(mw.pubkey) <= 0 {
+		t.Errorf("NewMiddleware failed. Expected pubkey but got empty field")
 	}
-	if mw.logger == nil {
-		t.Errorf("NewMiddleware failed. Expected logger but got empty field")
+	if mw.log == nil {
+		t.Errorf("NewMiddleware failed. Expected log but got empty field")
 	}
 }
 
 func TestNewMiddleware_no_logger(t *testing.T) {
 	mc := &MiddlewareConfig{
-		Certificate: []byte(Pubkey),
+		PublicKey: []byte(Pubkey),
 	}
 	mw := NewMiddleware(mc)
-	if len(mw.certificate) <= 0 {
-		t.Errorf("NewMiddleware failed. Expected certificate but got empty field")
+	if len(mw.pubkey) <= 0 {
+		t.Errorf("NewMiddleware failed. Expected pubkey but got empty field")
 	}
-	if mw.logger == nil {
-		t.Errorf("NewMiddleware failed. Expected logger but got empty field")
+	if mw.log == nil {
+		t.Errorf("NewMiddleware failed. Expected log but got empty field")
 	}
 }
 
 func TestMiddleware_Handle(t *testing.T) {
 	mc := &MiddlewareConfig{
-		Certificate: []byte(Pubkey),
+		PublicKey: []byte(Pubkey),
 	}
 	mw := NewMiddleware(mc)
 
