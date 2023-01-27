@@ -5,9 +5,12 @@
 package openpgp
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/dhia-gharsallaoui/go-logger"
+	"github.com/wneessen/go-mail"
 )
 
 // Pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is
@@ -93,5 +96,26 @@ func TestNewMiddleware_no_logger(t *testing.T) {
 	}
 	if mw.logger == nil {
 		t.Errorf("NewMiddleware failed. Expected logger but got empty field")
+	}
+}
+
+func TestMiddleware_Handle(t *testing.T) {
+	mc := &MiddlewareConfig{
+		Certificate: []byte(Pubkey),
+	}
+	mw := NewMiddleware(mc)
+
+	m := mail.NewMsg(mail.WithMiddleware(mw))
+	m.Subject("This is a subject")
+	m.SetDate()
+	m.SetBodyString(mail.TypeTextPlain, "This is the mail body")
+	buf := bytes.Buffer{}
+	_, err := m.WriteTo(&buf)
+	if err != nil {
+		t.Errorf("failed writing message to memory: %s", err)
+	}
+	if !strings.Contains(buf.String(), `-----BEGIN PGP MESSAGE-----`) ||
+		!strings.Contains(buf.String(), `-----END PGP MESSAGE-----`) {
+		t.Errorf("mail encryption failed. Unable to find PGP notation in mail body")
 	}
 }

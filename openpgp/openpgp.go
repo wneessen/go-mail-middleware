@@ -15,6 +15,9 @@ import (
 	"github.com/wneessen/go-mail"
 )
 
+// Type is the type of Middleware
+const Type mail.MiddlewareType = "openpgp"
+
 // Middleware is the middleware struct for the openpgp middleware
 type Middleware struct {
 	logger      log.Logger
@@ -60,6 +63,7 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 			if err != nil {
 				m.logger.Fatal(err.Error())
 			}
+			part.SetEncoding(mail.NoEncoding)
 			part.SetContent(s)
 
 		case mail.TypeAppOctetStream:
@@ -87,6 +91,11 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 		msg.AttachReader(f.Name, bytes.NewReader([]byte(b)))
 	}
 	return msg
+}
+
+// Type returns the MiddlewareType for this Middleware
+func (m *Middleware) Type() mail.MiddlewareType {
+	return Type
 }
 
 type writer struct {
