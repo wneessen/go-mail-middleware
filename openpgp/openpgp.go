@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2023 Dhia Gharsallaoui
+// SPDX-FileCopyrightText: 2023 Winni Neessen <winni@neessen.dev>
+//
+// SPDX-License-Identifier: MIT
+
+// Package openpgp implements a go-mail middleware to encrypt mails via OpenPGP
 package openpgp
 
 import (
