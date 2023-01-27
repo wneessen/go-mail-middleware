@@ -67,7 +67,10 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 	msg.SetAttachements(nil)
 	for _, f := range ff {
 		w := writer{}
-		f.Writer(&w)
+		_, err := f.Writer(&w)
+		if err != nil {
+			m.logger.Fatal(err.Error())
+		}
 		b, err := helper.EncryptBinaryMessageArmored(string(m.certificate), w.body)
 		if err != nil {
 			m.logger.Fatal(err.Error())
