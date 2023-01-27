@@ -12,4 +12,5 @@ require (
 	github.com/emersion/go-msgauth v0.6.6
 	github.com/wneessen/go-mail v0.3.8
 	golang.org/x/text v0.6.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

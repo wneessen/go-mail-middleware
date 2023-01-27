@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2023 Dhia Gharsallaoui
+// SPDX-FileCopyrightText: 2023 Winni Neessen <winni@neessen.dev>
+//
+// SPDX-License-Identifier: MIT
+
+// Package openpgp implements a go-mail middleware to encrypt mails via OpenPGP
 package openpgp
 
 import (
@@ -28,10 +34,13 @@ func NewMiddleware(cfg *MiddlewareConfig) *Middleware {
 	if cfg.Logger != nil {
 		return &Middleware{logger: cfg.Logger, certificate: cfg.Certificate}
 	}
-	return &Middleware{logger: log.NewLogger(&log.LoggerConfiguration{
-		Prefix:    "",
-		Verbosity: log.WARN,
-	})}
+	return &Middleware{
+		certificate: cfg.Certificate,
+		logger: log.NewLogger(&log.LoggerConfiguration{
+			Prefix:    "",
+			Verbosity: log.WARN,
+		}),
+	}
 }
 
 // Handle is the handler method that satisfies the mail.Middleware interface
@@ -67,7 +76,10 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 	msg.SetAttachements(nil)
 	for _, f := range ff {
 		w := writer{}
-		f.Writer(&w)
+		_, err := f.Writer(&w)
+		if err != nil {
+			m.logger.Fatal(err.Error())
+		}
 		b, err := helper.EncryptBinaryMessageArmored(string(m.certificate), w.body)
 		if err != nil {
 			m.logger.Fatal(err.Error())
