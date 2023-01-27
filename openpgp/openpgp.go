@@ -34,10 +34,13 @@ func NewMiddleware(cfg *MiddlewareConfig) *Middleware {
 	if cfg.Logger != nil {
 		return &Middleware{logger: cfg.Logger, certificate: cfg.Certificate}
 	}
-	return &Middleware{logger: log.NewLogger(&log.LoggerConfiguration{
-		Prefix:    "",
-		Verbosity: log.WARN,
-	})}
+	return &Middleware{
+		certificate: cfg.Certificate,
+		logger: log.NewLogger(&log.LoggerConfiguration{
+			Prefix:    "",
+			Verbosity: log.WARN,
+		}),
+	}
 }
 
 // Handle is the handler method that satisfies the mail.Middleware interface
