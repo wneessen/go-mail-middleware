@@ -72,7 +72,7 @@ type Config struct {
 }
 
 // Option returns a function that can be used for grouping SignerConfig options
-type Option func(cfg *Config) error
+type Option func(cfg *Config)
 
 // NewConfigFromPubKeyByteSlice returns a new Config from a given OpenPGP/GPG public
 // key byte slice.
@@ -136,9 +136,7 @@ func NewConfig(pr, pu string, o ...Option) (*Config, error) {
 		if co == nil {
 			continue
 		}
-		if err := co(c); err != nil {
-			return c, fmt.Errorf("failed to apply option: %w", err)
-		}
+		co(c)
 	}
 
 	if c.PrivKey == "" && (c.Action == ActionSign || c.Action == ActionEncryptAndSign) {
@@ -158,25 +156,22 @@ func NewConfig(pr, pu string, o ...Option) (*Config, error) {
 
 // WithLogger sets a slog.Logger for the Config
 func WithLogger(l *log.Logger) Option {
-	return func(c *Config) error {
+	return func(c *Config) {
 		c.Logger = l
-		return nil
 	}
 }
 
 // WithScheme sets a PGPScheme for the Config
 func WithScheme(s PGPScheme) Option {
-	return func(c *Config) error {
+	return func(c *Config) {
 		c.Scheme = s
-		return nil
 	}
 }
 
 // WithAction sets a Action for the Config
 func WithAction(a Action) Option {
-	return func(c *Config) error {
+	return func(c *Config) {
 		c.Action = a
-		return nil
 	}
 }
 
