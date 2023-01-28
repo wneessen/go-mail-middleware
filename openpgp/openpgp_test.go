@@ -18,10 +18,10 @@ import (
 	"github.com/wneessen/go-mail"
 )
 
-// Pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is
+// pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is
 // not used in any actual environment. Please don't use it to send any encrypted
 // mails
-const Pubkey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+const pubKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGPT4R8BEAC77qxjyWmshngRUrA2dVBD+/N8lBqxeMq/ZvGQJhhId9KJGDe5
 X/lWUqr5Gx0b4eTSOv7Uqc4wSg0Ji7bSqzenvgQIvfKdbDs82kZ8V9pBiRo02bbP
@@ -74,8 +74,119 @@ avSf
 =JhVL
 -----END PGP PUBLIC KEY BLOCK-----`
 
+// privkey is a dedicated OpenPGP key for testing this go-middleware. This key is
+// not used in any actual environment. Please don't use it to send any encrypted
+// mails
+const privKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+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
+=JfM9
+-----END PGP PRIVATE KEY BLOCK-----`
+
 func TestNewConfig(t *testing.T) {
-	mc, err := NewConfig(Pubkey)
+	mc, err := NewConfig(privKey, pubKey)
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
@@ -88,27 +199,77 @@ func TestNewConfig(t *testing.T) {
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfig failed. Expected public key but got empty string")
 	}
-	if mc.PublicKey != Pubkey {
+	if mc.PublicKey != pubKey {
 		t.Errorf("NewConfig failed. Public key does not match")
+	}
+	if mc.PrivKey == "" {
+		t.Errorf("NewConfig failed. Expected private key but got empty string")
+	}
+	if mc.PrivKey != privKey {
+		t.Errorf("NewConfig failed. Private key does not match")
 	}
 }
 
 func TestNewConfigFromPubKeyBytes(t *testing.T) {
-	mc, err := NewConfigFromPubKeyBytes([]byte(Pubkey))
+	mc, err := NewConfigFromPubKeyByteSlice([]byte(pubKey))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
 	if mc.Scheme != SchemePGPInline {
-		t.Errorf("NewConfigFromPubKeyBytes failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPubKeyBytes failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected slog logger but got nil")
 	}
 	if mc.PublicKey == "" {
-		t.Errorf("NewConfigFromPubKeyBytes failed. Expected public key but got empty string")
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected public key but got empty string")
 	}
-	if mc.PublicKey != Pubkey {
-		t.Errorf("NewConfigFromPubKeyBytes failed. Public key does not match")
+	if mc.PublicKey != pubKey {
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Public key does not match")
+	}
+}
+
+func TestNewConfigFromPrivKeyBytes(t *testing.T) {
+	mc, err := NewConfigFromPrivKeyByteSlice([]byte(privKey), WithAction(ActionSign))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected slog logger but got nil")
+	}
+	if mc.PrivKey == "" {
+		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected public key but got empty string")
+	}
+	if mc.PrivKey != privKey {
+		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Private key does not match")
+	}
+}
+
+func TestNewConfigFromKeysBytes(t *testing.T) {
+	mc, err := NewConfigFromKeysByteSlices([]byte(privKey), []byte(pubKey))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected slog logger but got nil")
+	}
+	if mc.PublicKey == "" {
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected public key but got empty string")
+	}
+	if mc.PublicKey != pubKey {
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Public key does not match")
+	}
+	if mc.PrivKey == "" {
+		t.Errorf("NewConfigFromKeysByteSlices failed. Expected private key but got empty string")
+	}
+	if mc.PrivKey != privKey {
+		t.Errorf("NewConfigFromKeysByteSlices failed. Private key does not match")
 	}
 }
 
@@ -120,7 +281,7 @@ func TestNewConfigFromPubKeyFile(t *testing.T) {
 	}
 	defer func() { _ = os.RemoveAll(tmp) }()
 	file := fmt.Sprintf("%s/%s", tmp, "pubkey.asc")
-	if err := os.WriteFile(file, []byte(Pubkey), 0o700); err != nil {
+	if err := os.WriteFile(file, []byte(pubKey), 0o700); err != nil {
 		t.Errorf("failed to write public key to temporary file %q: %s", file, err)
 		return
 	}
@@ -137,15 +298,86 @@ func TestNewConfigFromPubKeyFile(t *testing.T) {
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfigFromPubKeyFile failed. Expected public key but got empty string")
 	}
-	if mc.PublicKey != Pubkey {
+	if mc.PublicKey != pubKey {
 		t.Errorf("NewConfigFromPubKeyFile failed. Public key does not match")
+	}
+}
+
+func TestNewConfigFromPrivKeyFile(t *testing.T) {
+	tmp, err := os.MkdirTemp(os.TempDir(), "go-mail-middleware-openpgp_")
+	if err != nil {
+		t.Errorf("failed to create temporary directory for key file")
+		return
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+	file := fmt.Sprintf("%s/%s", tmp, "privkey.asc")
+	if err := os.WriteFile(file, []byte(privKey), 0o700); err != nil {
+		t.Errorf("failed to write public key to temporary file %q: %s", file, err)
+		return
+	}
+	mc, err := NewConfigFromPrivKeyFile(file, WithAction(ActionSign))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromPrivKeyFile failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromPrivKeyFile failed. Expected slog logger but got nil")
+	}
+	if mc.PrivKey == "" {
+		t.Errorf("NewConfigFromPrivKeyFile failed. Expected public key but got empty string")
+	}
+	if mc.PrivKey != privKey {
+		t.Errorf("NewConfigFromPrivKeyFile failed. Private key does not match")
+	}
+}
+
+func TestNewConfigFromKeysFiles(t *testing.T) {
+	tmp, err := os.MkdirTemp(os.TempDir(), "go-mail-middleware-openpgp_")
+	if err != nil {
+		t.Errorf("failed to create temporary directory for key file")
+		return
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+	pubfile := fmt.Sprintf("%s/%s", tmp, "pubkey.asc")
+	if err := os.WriteFile(pubfile, []byte(pubKey), 0o700); err != nil {
+		t.Errorf("failed to write public key to temporary file %q: %s", pubfile, err)
+		return
+	}
+	privfile := fmt.Sprintf("%s/%s", tmp, "privkey.asc")
+	if err := os.WriteFile(privfile, []byte(privKey), 0o700); err != nil {
+		t.Errorf("failed to write private key to temporary file %q: %s", privfile, err)
+		return
+	}
+	mc, err := NewConfigFromKeyFiles(privfile, pubfile)
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromKeyFiles failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromKeyFiles failed. Expected slog logger but got nil")
+	}
+	if mc.PublicKey == "" {
+		t.Errorf("NewConfigFromKeyFiles failed. Expected public key but got empty string")
+	}
+	if mc.PublicKey != pubKey {
+		t.Errorf("NewConfigFromKeyFiles failed. Public key does not match")
+	}
+	if mc.PrivKey == "" {
+		t.Errorf("NewConfigFromKeyFiles failed. Expected private key but got empty string")
+	}
+	if mc.PrivKey != privKey {
+		t.Errorf("NewConfigFromKeyFiles failed. Private key does not match")
 	}
 }
 
 func TestNewConfig_WithLogger(t *testing.T) {
 	lh := slog.HandlerOptions{Level: slog.LevelDebug}.NewJSONHandler(os.Stderr)
 	l := slog.New(lh)
-	mc, err := NewConfig(Pubkey, WithLogger(l))
+	mc, err := NewConfig(privKey, pubKey, WithLogger(l))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
@@ -165,7 +397,7 @@ func TestNewConfig_WithScheme(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.n, func(t *testing.T) {
-			mc, err := NewConfig(Pubkey, WithScheme(tt.s))
+			mc, err := NewConfig(privKey, pubKey, WithScheme(tt.s))
 			if err != nil {
 				t.Errorf("NewConfig_WithScheme %q failed: %s", tt.s, err)
 			}
@@ -179,8 +411,34 @@ func TestNewConfig_WithScheme(t *testing.T) {
 	}
 }
 
+func TestNewConfig_WithAction(t *testing.T) {
+	tests := []struct {
+		n string
+		a Action
+	}{
+		{"Encrypt-only", ActionEncrypt},
+		{"Encrypt/Sign", ActionEncryptAndSign},
+		{"Sign-only", ActionSign},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.n, func(t *testing.T) {
+			mc, err := NewConfig(privKey, pubKey, WithAction(tt.a))
+			if err != nil {
+				t.Errorf("NewConfig_WithAction %q failed: %s", tt.a, err)
+			}
+			if mc.Action != tt.a {
+				t.Errorf("NewConfig_WithAction failed. Expected %s, got %s", tt.a, mc.Action)
+			}
+			if mc.Action.String() == "unknown" {
+				t.Errorf("NewConfig_WithAction failed. Received unknown type")
+			}
+		})
+	}
+}
+
 func TestNewMiddleware(t *testing.T) {
-	mc, err := NewConfig(Pubkey)
+	mc, err := NewConfig(privKey, pubKey)
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
@@ -191,7 +449,7 @@ func TestNewMiddleware(t *testing.T) {
 }
 
 func TestMiddleware_HandlePGPInline(t *testing.T) {
-	mc, err := NewConfig(Pubkey, WithScheme(SchemePGPInline))
+	mc, err := NewConfig(privKey, pubKey, WithScheme(SchemePGPInline))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
@@ -230,7 +488,7 @@ func TestMiddleware_HandlePGPInline(t *testing.T) {
 
 func TestMiddleware_HandlePGPMIME(t *testing.T) {
 	t.Skip("PGP/MIME not supported yet")
-	mc, err := NewConfig(Pubkey, WithScheme(SchemePGPMIME))
+	mc, err := NewConfig(privKey, pubKey, WithScheme(SchemePGPMIME))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
 	}
