@@ -52,71 +52,55 @@ func New(o io.Writer, p string, l Level) *Logger {
 // Debug performs a print() on the debug logger
 func (l *Logger) Debug(v ...interface{}) {
 	if l.l >= LevelDebug {
-		if err := l.debug.Output(2, fmt.Sprint(v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
-	}
-}
-
-// Error performs a print() on the error logger
-func (l *Logger) Error(v ...interface{}) {
-	if l.l >= LevelError {
-		if err := l.warn.Output(2, fmt.Sprint(v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.debug.Output(2, fmt.Sprint(v...))
 	}
 }
 
 // Info performs a print() on the info logger
 func (l *Logger) Info(v ...interface{}) {
 	if l.l >= LevelInfo {
-		if err := l.info.Output(2, fmt.Sprint(v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.info.Output(2, fmt.Sprint(v...))
 	}
 }
 
 // Warn performs a print() on the warn logger
 func (l *Logger) Warn(v ...interface{}) {
 	if l.l >= LevelWarn {
-		if err := l.warn.Output(2, fmt.Sprint(v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.warn.Output(2, fmt.Sprint(v...))
+	}
+}
+
+// Error performs a print() on the error logger
+func (l *Logger) Error(v ...interface{}) {
+	if l.l >= LevelError {
+		_ = l.err.Output(2, fmt.Sprint(v...))
 	}
 }
 
 // Debugf performs a Printf() on the debug logger
 func (l *Logger) Debugf(f string, v ...interface{}) {
 	if l.l >= LevelDebug {
-		if err := l.debug.Output(2, fmt.Sprintf(f, v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
-	}
-}
-
-// Errorf performs a Printf() on the error logger
-func (l *Logger) Errorf(f string, v ...interface{}) {
-	if l.l >= LevelError {
-		if err := l.err.Output(2, fmt.Sprintf(f, v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.debug.Output(2, fmt.Sprintf(f, v...))
 	}
 }
 
 // Infof performs a Printf() on the info logger
 func (l *Logger) Infof(f string, v ...interface{}) {
 	if l.l >= LevelInfo {
-		if err := l.info.Output(2, fmt.Sprintf(f, v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.info.Output(2, fmt.Sprintf(f, v...))
 	}
 }
 
 // Warnf performs a Printf() on the warn logger
 func (l *Logger) Warnf(f string, v ...interface{}) {
 	if l.l >= LevelWarn {
-		if err := l.warn.Output(2, fmt.Sprintf(f, v...)); err != nil {
-			log.Printf("LOGERROR: %s", err)
-		}
+		_ = l.warn.Output(2, fmt.Sprintf(f, v...))
+	}
+}
+
+// Errorf performs a Printf() on the error logger
+func (l *Logger) Errorf(f string, v ...interface{}) {
+	if l.l >= LevelError {
+		_ = l.err.Output(2, fmt.Sprintf(f, v...))
 	}
 }
