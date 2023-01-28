@@ -10,8 +10,10 @@ require (
 	github.com/ProtonMail/gopenpgp/v2 v2.5.0
 	github.com/emersion/go-msgauth v0.6.6
 	github.com/wneessen/go-mail v0.3.9-0.20230128134908-3c0f5d03d844
-	golang.org/x/exp v0.0.0-20230127193734-31bee513bff7
 	golang.org/x/text v0.6.0
 )
 
-require gopkg.in/yaml.v2 v2.4.0 // indirect
+require (
+	golang.org/x/crypto v0.1.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+)

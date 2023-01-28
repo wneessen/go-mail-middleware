@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/wneessen/go-mail"
-	"golang.org/x/exp/slog"
+	"github.com/wneessen/go-mail-middleware/log"
 )
 
 // pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is
@@ -193,7 +193,7 @@ func TestNewConfig(t *testing.T) {
 		t.Errorf("NewConfig failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfig failed. Expected slog logger but got nil")
+		t.Errorf("NewConfig failed. Expected log logger but got nil")
 	}
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfig failed. Expected public key but got empty string")
@@ -218,7 +218,7 @@ func TestNewConfigFromPubKeyBytes(t *testing.T) {
 		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected log logger but got nil")
 	}
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected public key but got empty string")
@@ -237,7 +237,7 @@ func TestNewConfigFromPrivKeyBytes(t *testing.T) {
 		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected log logger but got nil")
 	}
 	if mc.PrivKey == "" {
 		t.Errorf("NewConfigFromPrivKeyByteSlice failed. Expected public key but got empty string")
@@ -256,7 +256,7 @@ func TestNewConfigFromKeysBytes(t *testing.T) {
 		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected log logger but got nil")
 	}
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfigFromPubKeyByteSlice failed. Expected public key but got empty string")
@@ -292,7 +292,7 @@ func TestNewConfigFromPubKeyFile(t *testing.T) {
 		t.Errorf("NewConfigFromPubKeyFile failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPubKeyFile failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPubKeyFile failed. Expected log logger but got nil")
 	}
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfigFromPubKeyFile failed. Expected public key but got empty string")
@@ -322,7 +322,7 @@ func TestNewConfigFromPrivKeyFile(t *testing.T) {
 		t.Errorf("NewConfigFromPrivKeyFile failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromPrivKeyFile failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromPrivKeyFile failed. Expected log logger but got nil")
 	}
 	if mc.PrivKey == "" {
 		t.Errorf("NewConfigFromPrivKeyFile failed. Expected public key but got empty string")
@@ -357,7 +357,7 @@ func TestNewConfigFromKeysFiles(t *testing.T) {
 		t.Errorf("NewConfigFromKeyFiles failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
 	}
 	if mc.Logger == nil {
-		t.Errorf("NewConfigFromKeyFiles failed. Expected slog logger but got nil")
+		t.Errorf("NewConfigFromKeyFiles failed. Expected log logger but got nil")
 	}
 	if mc.PublicKey == "" {
 		t.Errorf("NewConfigFromKeyFiles failed. Expected public key but got empty string")
@@ -374,8 +374,7 @@ func TestNewConfigFromKeysFiles(t *testing.T) {
 }
 
 func TestNewConfig_WithLogger(t *testing.T) {
-	lh := slog.HandlerOptions{Level: slog.LevelDebug}.NewJSONHandler(os.Stderr)
-	l := slog.New(lh)
+	l := log.New(os.Stderr, "[openpgp-custom]", log.LevelWarn)
 	mc, err := NewConfig(privKey, pubKey, WithLogger(l))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)

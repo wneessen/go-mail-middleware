@@ -14,7 +14,7 @@ import (
 
 	"github.com/ProtonMail/gopenpgp/v2/helper"
 	"github.com/wneessen/go-mail"
-	"golang.org/x/exp/slog"
+	"github.com/wneessen/go-mail-middleware/log"
 )
 
 // Type is the type of Middleware
@@ -62,7 +62,7 @@ type Config struct {
 	// Action represents the encryption/signing action that the Middlware should perform
 	Action Action
 	// Logger represents a log that satisfies the log.Logger interface
-	Logger *slog.Logger
+	Logger *log.Logger
 	// PrivKey represents the OpenPGP/GPG private key part used for signing the mail
 	PrivKey string
 	// PublicKey represents the OpenPGP/GPG public key used for encrypting the mail
@@ -150,15 +150,14 @@ func NewConfig(pr, pu string, o ...Option) (*Config, error) {
 
 	// Create a slog.TextHandler logger if none was provided
 	if c.Logger == nil {
-		lh := slog.HandlerOptions{Level: slog.LevelWarn}.NewTextHandler(os.Stderr)
-		c.Logger = slog.New(lh)
+		c.Logger = log.New(os.Stderr, "[openpgp] ", log.LevelWarn)
 	}
 
 	return c, nil
 }
 
 // WithLogger sets a slog.Logger for the Config
-func WithLogger(l *slog.Logger) Option {
+func WithLogger(l *log.Logger) Option {
 	return func(c *Config) error {
 		c.Logger = l
 		return nil
@@ -195,7 +194,7 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 	case SchemePGPInline:
 		return m.encryptInline(msg)
 	default:
-		m.config.Logger.Warn("unsupported scheme. sending mail unencrypted")
+		m.config.Logger.Errorf("unsupported scheme %q. sending mail unencrypted", m.config.Scheme)
 	}
 
 	return msg
@@ -229,8 +228,7 @@ func (m *Middleware) encryptInline(msg *mail.Msg) *mail.Msg {
 			}
 			part.SetContent(s)
 		default:
-			m.config.Logger.Warn("unknown content type. ignoring",
-				slog.String("content_type", string(part.GetContentType())))
+			m.config.Logger.Warnf("unknown content type %q. ignoring", string(part.GetContentType()))
 			part.Delete()
 		}
 	}
