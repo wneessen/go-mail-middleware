@@ -26,17 +26,19 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go: [1.19]
+        go: [1.16, 1.17, 1.18, 1.19]
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@master
-        
-    - name: Run Tests
-      run: |
-        go mod download && go test -v -race --coverprofile=coverage.coverprofile --covermode=atomic ./...
-    
-    - name: Upload coverage to Codecov
-      if: success() && matrix.go == 1.19 && matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v2
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+      - name: Checkout Code
+        uses: actions/checkout@master
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Run Tests
+        run: |
+          go test -v -race --coverprofile=coverage.coverprofile --covermode=atomic ./...
+      - name: Upload coverage to Codecov
+        if: success() && matrix.go == 1.19 && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
