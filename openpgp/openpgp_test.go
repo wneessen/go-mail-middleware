@@ -5,7 +5,10 @@
 package openpgp
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/base64"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -71,36 +74,126 @@ avSf
 =JhVL
 -----END PGP PUBLIC KEY BLOCK-----`
 
+func TestNewConfig(t *testing.T) {
+	mc, err := NewConfig(Pubkey)
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfig failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfig failed. Expected slog logger but got nil")
+	}
+	if mc.PublicKey == "" {
+		t.Errorf("NewConfig failed. Expected public key but got empty string")
+	}
+	if mc.PublicKey != Pubkey {
+		t.Errorf("NewConfig failed. Public key does not match")
+	}
+}
+
+func TestNewConfigFromPubKeyBytes(t *testing.T) {
+	mc, err := NewConfigFromPubKeyBytes([]byte(Pubkey))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromPubKeyBytes failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromPubKeyBytes failed. Expected slog logger but got nil")
+	}
+	if mc.PublicKey == "" {
+		t.Errorf("NewConfigFromPubKeyBytes failed. Expected public key but got empty string")
+	}
+	if mc.PublicKey != Pubkey {
+		t.Errorf("NewConfigFromPubKeyBytes failed. Public key does not match")
+	}
+}
+
+func TestNewConfigFromPubKeyFile(t *testing.T) {
+	tmp, err := os.MkdirTemp(os.TempDir(), "go-mail-middleware-openpgp_")
+	if err != nil {
+		t.Errorf("failed to create temporary directory for key file")
+		return
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+	file := fmt.Sprintf("%s/%s", tmp, "pubkey.asc")
+	if err := os.WriteFile(file, []byte(Pubkey), 0o700); err != nil {
+		t.Errorf("failed to write public key to temporary file %q: %s", file, err)
+		return
+	}
+	mc, err := NewConfigFromPubKeyFile(file)
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Scheme != SchemePGPInline {
+		t.Errorf("NewConfigFromPubKeyFile failed. Expected Scheme %d, got: %d", SchemePGPInline, mc.Scheme)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfigFromPubKeyFile failed. Expected slog logger but got nil")
+	}
+	if mc.PublicKey == "" {
+		t.Errorf("NewConfigFromPubKeyFile failed. Expected public key but got empty string")
+	}
+	if mc.PublicKey != Pubkey {
+		t.Errorf("NewConfigFromPubKeyFile failed. Public key does not match")
+	}
+}
+
+func TestNewConfig_WithLogger(t *testing.T) {
+	lh := slog.HandlerOptions{Level: slog.LevelDebug}.NewJSONHandler(os.Stderr)
+	l := slog.New(lh)
+	mc, err := NewConfig(Pubkey, WithLogger(l))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.Logger == nil {
+		t.Errorf("NewConfig_WithLogger failed. Expected slog logger but got empty field")
+	}
+}
+
+func TestNewConfig_WithScheme(t *testing.T) {
+	tests := []struct {
+		n string
+		s PGPScheme
+	}{
+		{"PGP/Inline", SchemePGPInline},
+		{"PGP/MIME", SchemePGPMIME},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.n, func(t *testing.T) {
+			mc, err := NewConfig(Pubkey, WithScheme(tt.s))
+			if err != nil {
+				t.Errorf("NewConfig_WithScheme %q failed: %s", tt.s, err)
+			}
+			if mc.Scheme != tt.s {
+				t.Errorf("NewConfig_WithScheme failed. Expected %s, got %s", tt.s, mc.Scheme)
+			}
+			if mc.Scheme.String() == "unknown" {
+				t.Errorf("NewConfig_WithScheme failed. Received unknown type")
+			}
+		})
+	}
+}
+
 func TestNewMiddleware(t *testing.T) {
-	mc := &MiddlewareConfig{
-		PublicKey: []byte(Pubkey),
-		Logger:    slog.New(slog.NewJSONHandler(os.Stderr)),
+	mc, err := NewConfig(Pubkey)
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
 	}
 	mw := NewMiddleware(mc)
-	if len(mw.pubkey) <= 0 {
-		t.Errorf("NewMiddleware failed. Expected pubkey but got empty field")
-	}
-	if mw.log == nil {
-		t.Errorf("NewMiddleware failed. Expected log but got empty field")
+	if mw.config == nil {
+		t.Errorf("NewMiddleware failed. Expected config but got empty field")
 	}
 }
 
-func TestNewMiddleware_no_logger(t *testing.T) {
-	mc := &MiddlewareConfig{
-		PublicKey: []byte(Pubkey),
-	}
-	mw := NewMiddleware(mc)
-	if len(mw.pubkey) <= 0 {
-		t.Errorf("NewMiddleware failed. Expected pubkey but got empty field")
-	}
-	if mw.log == nil {
-		t.Errorf("NewMiddleware failed. Expected log but got empty field")
-	}
-}
-
-func TestMiddleware_Handle(t *testing.T) {
-	mc := &MiddlewareConfig{
-		PublicKey: []byte(Pubkey),
+func TestMiddleware_HandlePGPInline(t *testing.T) {
+	mc, err := NewConfig(Pubkey, WithScheme(SchemePGPInline))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
 	}
 	mw := NewMiddleware(mc)
 
@@ -109,12 +202,67 @@ func TestMiddleware_Handle(t *testing.T) {
 	m.SetDate()
 	m.SetBodyString(mail.TypeTextPlain, "This is the mail body")
 	buf := bytes.Buffer{}
-	_, err := m.WriteTo(&buf)
+	_, err = m.WriteTo(&buf)
 	if err != nil {
 		t.Errorf("failed writing message to memory: %s", err)
 	}
-	if !strings.Contains(buf.String(), `-----BEGIN PGP MESSAGE-----`) ||
-		!strings.Contains(buf.String(), `-----END PGP MESSAGE-----`) {
+	br := bufio.NewScanner(&buf)
+	fb := false
+	body := ""
+	for br.Scan() {
+		l := br.Text()
+		if l == "" {
+			fb = true
+		}
+		if fb {
+			body += l + "\n"
+		}
+	}
+	bb, err := base64.RawStdEncoding.DecodeString(body)
+	if err != nil {
+		t.Errorf("failed to base64 decode message body: %s", err)
+	}
+	if !strings.Contains(string(bb), `-----BEGIN PGP MESSAGE-----`) ||
+		!strings.Contains(string(bb), `-----END PGP MESSAGE-----`) {
+		t.Errorf("mail encryption failed. Unable to find PGP notation in mail body")
+	}
+}
+
+func TestMiddleware_HandlePGPMIME(t *testing.T) {
+	t.Skip("PGP/MIME not supported yet")
+	mc, err := NewConfig(Pubkey, WithScheme(SchemePGPMIME))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	mw := NewMiddleware(mc)
+
+	m := mail.NewMsg(mail.WithMiddleware(mw))
+	m.Subject("This is a subject")
+	m.SetDate()
+	m.SetBodyString(mail.TypeTextPlain, "This is the mail body")
+	buf := bytes.Buffer{}
+	_, err = m.WriteTo(&buf)
+	if err != nil {
+		t.Errorf("failed writing message to memory: %s", err)
+	}
+	br := bufio.NewScanner(&buf)
+	fb := false
+	body := ""
+	for br.Scan() {
+		l := br.Text()
+		if l == "" {
+			fb = true
+		}
+		if fb {
+			body += l + "\n"
+		}
+	}
+	bb, err := base64.RawStdEncoding.DecodeString(body)
+	if err != nil {
+		t.Errorf("failed to base64 decode message body: %s", err)
+	}
+	if !strings.Contains(string(bb), `-----BEGIN PGP MESSAGE-----`) ||
+		!strings.Contains(string(bb), `-----END PGP MESSAGE-----`) {
 		t.Errorf("mail encryption failed. Unable to find PGP notation in mail body")
 	}
 }
