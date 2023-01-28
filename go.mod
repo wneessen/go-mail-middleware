@@ -4,7 +4,7 @@
 
 module github.com/wneessen/go-mail-middleware
 
-go 1.16
+go 1.19
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.5.0
