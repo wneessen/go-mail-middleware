@@ -5,12 +5,26 @@ SPDX-FileCopyrightText: 2023 Winni Neessen <winni@neessen.dev>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-### Note: This middleware is still in development and not fully functional yet
+## WIP Note
+
+This middleware is still under development and not fully functional yet. For it to properly 
+work, you will need the main branch of the go-mail package. The latest releases do not provide
+all the functionality required for this middleware to work.
 
 ## OpenPGP middleware
 
 This middleware allows to encrypt the mail body and the attachments of a go-mail `*Msg`
 before sending it.
+
+### PGP Schme support
+
+This middleware supports two PGP encoding schemes:
+* PGP/Inline
+* PGP/MIME (currently not supported, yet)
+
+*Please note, that PGP/Inline does only work with plain text mails. Any mail message
+(alternative) body part of type `text/html` will be discarded in the final output 
+of the mail.*
 
 ### Example
 
@@ -18,7 +32,9 @@ before sending it.
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/wneessen/go-mail"
 	"github.com/wneessen/go-mail-middleware/openpgp"
@@ -30,10 +46,17 @@ const pubKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 func main() {
 	// First we need a config for our OpenPGP middleware
-	mc := &MiddlewareConfig{
-		Certificate: []byte(Pubkey),
+	//
+	// In case your public key is in byte slice format or even a file, we provide two
+	// helper methods:
+	// - openpgp.NewConfigFromPubKeyBytes()
+	// - openpgp.NewConfigFromPubKeyFile()
+	mc, err := openpgp.NewConfig(pubKey, openpgp.WithScheme(openpgp.SchemePGPInline))
+	if err != nil {
+		fmt.Printf("failed to create new config: %s\n", err)
+		os.Exit(1)
 	}
-	mw := NewMiddleware(mc)
+	mw := openpgp.NewMiddleware(mc)
 
 	// Finally we create a new mail.Msg with our middleware assigned
 	m := mail.NewMsg(mail.WithMiddleware(mw))
