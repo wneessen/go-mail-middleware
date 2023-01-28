@@ -13,9 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/exp/slog"
-
 	"github.com/wneessen/go-mail"
+	"golang.org/x/exp/slog"
 )
 
 // pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is
