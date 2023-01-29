@@ -419,6 +419,20 @@ func TestNewConfig_WithLogger(t *testing.T) {
 	}
 }
 
+func TestNewConfig_WithPrivKeyPass(t *testing.T) {
+	p := "sup3rS3cret!"
+	mc, err := NewConfig(privKey, pubKey, WithPrivKeyPass(p))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	if mc.passphrase == "" {
+		t.Errorf("NewConfig_WithPrivKeyPass failed. Expected value but got empty string")
+	}
+	if mc.passphrase != p {
+		t.Errorf("NewConfig_WithPrivKeyPass failed. Expected: %s, got: %s", p, mc.passphrase)
+	}
+}
+
 func TestNewConfig_WithScheme(t *testing.T) {
 	tests := []struct {
 		n string

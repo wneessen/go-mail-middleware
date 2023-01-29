@@ -50,6 +50,8 @@ var (
 	ErrNoPrivKey = errors.New("no private key provided")
 	// ErrNoPubKey should be returned if a public key is needed but not provided
 	ErrNoPubKey = errors.New("no public key provided")
+	// ErrUnsupportedAction should be returned if a not supported action is set
+	ErrUnsupportedAction = errors.New("unsupported action")
 )
 
 // Middleware is the middleware struct for the openpgp middleware
@@ -69,6 +71,9 @@ type Config struct {
 	PublicKey string
 	// Schema represents one of the supported PGP encryption schemes
 	Scheme PGPScheme
+
+	// passphrase is the passphrase for the private key
+	passphrase string
 }
 
 // Option returns a function that can be used for grouping SignerConfig options
@@ -175,6 +180,13 @@ func WithAction(a Action) Option {
 	}
 }
 
+// WithPrivKeyPass sets a passphrase for the PrivKey in the Config
+func WithPrivKeyPass(p string) Option {
+	return func(c *Config) {
+		c.passphrase = p
+	}
+}
+
 // NewMiddleware returns a new Middleware from a given Config.
 // The returned Middleware satisfies the mail.Middleware interface
 func NewMiddleware(c *Config) *Middleware {
@@ -184,44 +196,53 @@ func NewMiddleware(c *Config) *Middleware {
 	return mw
 }
 
+// Handle is the handler method that satisfies the mail.Middleware interface
 func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 	switch m.config.Scheme {
 	case SchemePGPInline:
-		return m.encryptInline(msg)
+		return m.processInline(msg)
 	default:
 		m.config.Logger.Errorf("unsupported scheme %q. sending mail unencrypted", m.config.Scheme)
 	}
-
 	return msg
 }
 
-// encryptInline takes the given mail.Msg and encrypts the body parts and
+// processInline takes the given mail.Msg and encrypts the body parts and
 // attachments and replaces them with an PGP encrypted data blob embedded
 // into the mail body following the PGP/Inline scheme
-func (m *Middleware) encryptInline(msg *mail.Msg) *mail.Msg {
+func (m *Middleware) processInline(msg *mail.Msg) *mail.Msg {
 	pp := msg.GetParts()
 	for _, part := range pp {
 		c, err := part.GetContent()
 		if err != nil {
-			m.config.Logger.Error("failed to get part content", err)
+			m.config.Logger.Errorf("failed to get part content: %s", err)
 			continue
 		}
 		switch part.GetContentType() {
 		case mail.TypeTextPlain:
-			s, err := helper.EncryptMessageArmored(m.config.PublicKey, string(c))
+			s, err := m.processPlaintext(c)
 			if err != nil {
-				m.config.Logger.Error("failed to encrypt message part", err)
+				m.config.Logger.Errorf("failed to encrypt message part: %s", err)
 				continue
 			}
 			part.SetEncoding(mail.EncodingB64)
 			part.SetContent(s)
 		case mail.TypeAppOctetStream:
-			s, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, c)
-			if err != nil {
-				m.config.Logger.Error("failed to encrypt binary message part", err)
+			switch m.config.Action {
+			case ActionEncrypt:
+				s, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, c)
+				if err != nil {
+					m.config.Logger.Errorf("failed to encrypt binary message part: %s", err)
+					continue
+				}
+				part.SetContent(s)
+				continue
+			case ActionEncryptAndSign:
+				// TODO: Waiting for reply to https://github.com/ProtonMail/gopenpgp/issues/213
+				continue
+			case ActionSign:
 				continue
 			}
-			part.SetContent(s)
 		default:
 			m.config.Logger.Warnf("unknown content type %q. ignoring", string(part.GetContentType()))
 			part.Delete()
@@ -234,18 +255,34 @@ func (m *Middleware) encryptInline(msg *mail.Msg) *mail.Msg {
 	for _, f := range ff {
 		_, err := f.Writer(&buf)
 		if err != nil {
-			m.config.Logger.Error("failed to write attachment to memory", err)
+			m.config.Logger.Errorf("failed to write attachment to memory: %s", err)
 			continue
 		}
 		b, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, buf.Bytes())
 		if err != nil {
-			m.config.Logger.Error("failed to encrypt attachment", err)
+			m.config.Logger.Errorf("failed to encrypt attachment: %s", err)
 			continue
 		}
 		msg.AttachReader(f.Name, bytes.NewReader([]byte(b)))
 	}
 
 	return msg
+}
+
+// processPlaintext is a helper function that processes the given data based on the
+// configured Action
+func (m *Middleware) processPlaintext(d []byte) (string, error) {
+	switch m.config.Action {
+	case ActionEncrypt:
+		return helper.EncryptMessageArmored(m.config.PublicKey, string(d))
+	case ActionEncryptAndSign:
+		return helper.EncryptSignMessageArmored(m.config.PublicKey, m.config.PrivKey,
+			[]byte(m.config.passphrase), string(d))
+	case ActionSign:
+		return helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), string(d))
+	default:
+		return "", ErrUnsupportedAction
+	}
 }
 
 // Type returns the MiddlewareType for this Middleware
