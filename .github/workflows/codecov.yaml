@@ -20,6 +20,8 @@ on:
       - 'go.*'
       - '.github/**'
       - 'codecov.yml'
+env:
+  PRIV_KEY_PASS: ${{ secrets.PRIV_KEY_PASS }}
 jobs:
   run:
     runs-on: ${{ matrix.os }}
