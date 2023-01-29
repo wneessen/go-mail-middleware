@@ -30,7 +30,7 @@ func TestDebug(t *testing.T) {
 	l := New(&b, "test", LevelDebug)
 
 	l.Debug("test")
-	expected := "[DEBUG] test\n"
+	expected := "[test] DEBUG: test\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -48,7 +48,7 @@ func TestDebugf(t *testing.T) {
 	l := New(&b, "test", LevelDebug)
 
 	l.Debugf("test %s", "foo")
-	expected := "[DEBUG] test foo\n"
+	expected := "[test] DEBUG: test foo\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -66,7 +66,7 @@ func TestInfo(t *testing.T) {
 	l := New(&b, "test", LevelInfo)
 
 	l.Info("test")
-	expected := "[INFO] test\n"
+	expected := "[test]  INFO: test\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -84,7 +84,7 @@ func TestInfof(t *testing.T) {
 	l := New(&b, "test", LevelInfo)
 
 	l.Infof("test %s", "foo")
-	expected := "[INFO] test foo\n"
+	expected := "[test]  INFO: test foo\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -102,7 +102,7 @@ func TestWarn(t *testing.T) {
 	l := New(&b, "test", LevelWarn)
 
 	l.Warn("test")
-	expected := "[WARN] test\n"
+	expected := "[test]  WARN: test\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -120,7 +120,7 @@ func TestWarnf(t *testing.T) {
 	l := New(&b, "test", LevelWarn)
 
 	l.Warnf("test %s", "foo")
-	expected := "[WARN] test foo\n"
+	expected := "[test]  WARN: test foo\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -138,7 +138,7 @@ func TestError(t *testing.T) {
 	l := New(&b, "test", LevelError)
 
 	l.Error("test")
-	expected := "[ERROR] test\n"
+	expected := "[test] ERROR: test\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}
@@ -149,7 +149,7 @@ func TestErrorf(t *testing.T) {
 	l := New(&b, "test", LevelError)
 
 	l.Errorf("test %s", "foo")
-	expected := "[ERROR] test foo\n"
+	expected := "[test] ERROR: test foo\n"
 	if !strings.HasSuffix(b.String(), expected) {
 		t.Errorf("Expected %q, got %q", expected, b.String())
 	}

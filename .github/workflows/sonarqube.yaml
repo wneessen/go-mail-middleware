@@ -10,6 +10,8 @@ on:
   pull_request:
     branches:
       - main # or the name of your main branch
+env:
+  PRIV_KEY_PASS: ${{ secrets.PRIV_KEY_PASS }}
 jobs:
   build:
     name: Build
