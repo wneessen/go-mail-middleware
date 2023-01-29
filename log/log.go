@@ -38,14 +38,14 @@ const (
 
 // New returns a new log.Logger type for the corresponding Middleware to use
 func New(o io.Writer, p string, l Level) *Logger {
-	lf := log.Lmsgprefix | log.LstdFlags | log.Lshortfile
+	lf := log.Lmsgprefix | log.LstdFlags
 	return &Logger{
 		l:     l,
 		p:     p,
-		err:   log.New(o, "[ERROR] ", lf),
-		warn:  log.New(o, "[WARN] ", lf),
-		info:  log.New(o, "[INFO] ", lf),
-		debug: log.New(o, "[DEBUG] ", lf),
+		err:   log.New(o, fmt.Sprintf("[%s] ERROR: ", p), lf),
+		warn:  log.New(o, fmt.Sprintf("[%s]  WARN: ", p), lf),
+		info:  log.New(o, fmt.Sprintf("[%s]  INFO: ", p), lf),
+		debug: log.New(o, fmt.Sprintf("[%s] DEBUG: ", p), lf),
 	}
 }
 
