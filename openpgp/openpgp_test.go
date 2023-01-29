@@ -268,3 +268,43 @@ func TestMiddleware_HandlePGPMIME(t *testing.T) {
 		t.Errorf("mail encryption failed. Unable to find PGP notation in mail body")
 	}
 }
+
+func TestMiddleware_HandleUnknown(t *testing.T) {
+	mc, err := NewConfig(privKey, pubKey, WithScheme(999))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	mw := NewMiddleware(mc)
+
+	m := mail.NewMsg(mail.WithMiddleware(mw))
+	m.Subject("This is a subject")
+	m.SetDate()
+	m.SetBodyString(mail.TypeTextPlain, "This is the mail body")
+	buf := bytes.Buffer{}
+	_, err = m.WriteTo(&buf)
+	if err != nil {
+		t.Errorf("failed writing message to memory: %s", err)
+	}
+	if len(m.GetParts()) != 1 {
+		t.Errorf("Handle with unknown scheme failed. Mails parts seems modified")
+		return
+	}
+	pc, err := m.GetParts()[0].GetContent()
+	if err != nil {
+		t.Errorf("failed to get message body part content")
+	}
+	if string(pc) != "This is the mail body" {
+		t.Errorf("Handle with unknown scheme failed. Mails parts seems modified")
+	}
+}
+
+func TestMiddleware_Type(t *testing.T) {
+	mc, err := NewConfig(privKey, pubKey, WithScheme(999))
+	if err != nil {
+		t.Errorf("failed to create new config: %s", err)
+	}
+	mw := NewMiddleware(mc)
+	if mw.Type() != Type {
+		t.Errorf("Type() failed. Expected: %s, got: %s", Type, mw.Type())
+	}
+}

@@ -7,10 +7,8 @@ package openpgp
 import (
 	"bytes"
 
-	"github.com/ProtonMail/gopenpgp/v2/constants"
-
 	"github.com/ProtonMail/gopenpgp/v2/armor"
-
+	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/helper"
 	"github.com/wneessen/go-mail"
 )
@@ -35,29 +33,13 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 		}
 		switch part.GetContentType() {
 		case mail.TypeTextPlain:
-			s, err := m.processPlain(c)
+			s, err := m.processPlain(string(c))
 			if err != nil {
 				m.config.Logger.Errorf("failed to encrypt message part: %s", err)
 				continue
 			}
 			part.SetEncoding(mail.EncodingB64)
 			part.SetContent(s)
-		case mail.TypeAppOctetStream:
-			switch m.config.Action {
-			case ActionEncrypt:
-				s, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, c)
-				if err != nil {
-					m.config.Logger.Errorf("failed to encrypt binary message part: %s", err)
-					continue
-				}
-				part.SetContent(s)
-				continue
-			case ActionEncryptAndSign:
-				// TODO: Waiting for reply to https://github.com/ProtonMail/gopenpgp/issues/213
-				continue
-			case ActionSign:
-				continue
-			}
 		default:
 			m.config.Logger.Warnf("unsupported type %q. removing message part", string(part.GetContentType()))
 			part.Delete()
@@ -73,7 +55,7 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 			m.config.Logger.Errorf("failed to write attachment to memory: %s", err)
 			continue
 		}
-		b, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, buf.Bytes())
+		b, err := m.processBinary(buf.Bytes())
 		if err != nil {
 			m.config.Logger.Errorf("failed to encrypt attachment: %s", err)
 			continue
@@ -89,7 +71,7 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 			m.config.Logger.Errorf("failed to write attachment to memory: %s", err)
 			continue
 		}
-		b, err := helper.EncryptBinaryMessageArmored(m.config.PublicKey, buf.Bytes())
+		b, err := m.processBinary(buf.Bytes())
 		if err != nil {
 			m.config.Logger.Errorf("failed to encrypt attachment: %s", err)
 			continue
@@ -104,32 +86,40 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 // processBinary is a helper function that processes the given data based on the
 // configured Action
 func (m *Middleware) processBinary(d []byte) (string, error) {
-	switch m.config.Action {
-	case ActionEncrypt:
-		return helper.EncryptMessageArmored(m.config.PublicKey, string(d))
-	case ActionEncryptAndSign:
-		return helper.EncryptSignMessageArmored(m.config.PublicKey, m.config.PrivKey,
-			[]byte(m.config.passphrase), string(d))
-	case ActionSign:
-		return helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), string(d))
-	default:
-		return "", ErrUnsupportedAction
-	}
-}
-
-// processPlain is a helper function that processes the given data based on the
-// configured Action
-func (m *Middleware) processPlain(d []byte) (string, error) {
 	var ct string
 	var err error
 	switch m.config.Action {
 	case ActionEncrypt:
-		ct, err = helper.EncryptMessageArmored(m.config.PublicKey, string(d))
+		ct, err = helper.EncryptBinaryMessageArmored(m.config.PublicKey, d)
 	case ActionEncryptAndSign:
+		// TODO: Waiting for reply to https://github.com/ProtonMail/gopenpgp/issues/213
 		ct, err = helper.EncryptSignMessageArmored(m.config.PublicKey, m.config.PrivKey,
 			[]byte(m.config.passphrase), string(d))
 	case ActionSign:
-		ct, err = helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), string(d))
+		// TODO: Does this work with binary?
+		return helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), string(d))
+	default:
+		return "", ErrUnsupportedAction
+	}
+	if err != nil {
+		return ct, err
+	}
+	return m.reArmorMessage(ct)
+}
+
+// processPlain is a helper function that processes the given data based on the
+// configured Action
+func (m *Middleware) processPlain(d string) (string, error) {
+	var ct string
+	var err error
+	switch m.config.Action {
+	case ActionEncrypt:
+		ct, err = helper.EncryptMessageArmored(m.config.PublicKey, d)
+	case ActionEncryptAndSign:
+		ct, err = helper.EncryptSignMessageArmored(m.config.PublicKey, m.config.PrivKey,
+			[]byte(m.config.passphrase), d)
+	case ActionSign:
+		return helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), d)
 	default:
 		return "", ErrUnsupportedAction
 	}
