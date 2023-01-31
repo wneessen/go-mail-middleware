@@ -5,7 +5,10 @@
 package openpgp
 
 import (
+	"bufio"
 	"bytes"
+	"mime/multipart"
+	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/armor"
 	"github.com/ProtonMail/gopenpgp/v2/constants"
@@ -80,6 +83,69 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 		buf.Reset()
 	}
 
+	return msg
+}
+
+// pgpMIME renders the given mail.Msg and encrypts/signs the resulting
+// mail body. The returned PGP encrypted data blog is then embedded as
+// MIME embed into the mail and all other parts are removed.
+func (m *Middleware) pgpMIME(msg *mail.Msg) *mail.Msg {
+	var buf bytes.Buffer
+	var err error
+	var ct, mb string
+	var bf bool
+
+	mp := multipart.NewWriter(&buf)
+	defer func() {
+		if err := mp.Close(); err != nil {
+			m.config.Logger.Errorf("failed to close multipart writer: %s", err)
+		}
+	}()
+	p, err := mp.CreatePart(nil)
+	_, err = msg.WriteToSkipMiddleware(p, Type)
+	if err != nil {
+		m.config.Logger.Errorf("failed to write mail message to memory: %s", err)
+		return msg
+	}
+
+	br := bufio.NewScanner(&buf)
+	for br.Scan() {
+		l := br.Text()
+		if strings.HasPrefix(l, "Content-Type: multipart/mixed;") {
+			bf = true
+		}
+		if bf {
+			mb += l + mail.SingleNewLine
+		}
+	}
+	if br.Err() != nil {
+		m.config.Logger.Errorf("failed to read mail body into memory: %s", err)
+		return msg
+	}
+	ct, err = m.processPlain(mb)
+	if err != nil {
+		m.config.Logger.Errorf("failed to encrypt message part: %s", err)
+		return msg
+	}
+	buf.Reset()
+	buf.WriteString(ct)
+	for _, p := range msg.GetParts() {
+		p.Delete()
+	}
+	msg.AddAlternativeString(mail.TypePGPEncrypted, "Version: 1"+mail.SingleNewLine,
+		mail.WithPartContentDescription("PGP/MIME version identification"),
+		mail.WithPartEncoding(mail.NoEncoding))
+	msg.SetEmbeds(nil)
+	msg.SetAttachements(nil)
+	msg.EmbedReader("encrypted.asc", &buf,
+		mail.WithFileDescription("OpenPGP encrypted message"),
+		mail.WithFileEncoding(mail.NoEncoding), mail.WithFileContentType(mail.TypeAppOctetStream))
+	switch m.config.Action {
+	case ActionEncrypt, ActionEncryptAndSign:
+		msg.SetPGPType(mail.PGPEncrypt)
+	case ActionSign:
+		msg.SetPGPType(mail.PGPSignature)
+	}
 	return msg
 }
 
