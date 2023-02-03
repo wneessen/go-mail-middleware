@@ -36,8 +36,11 @@ func (m *Middleware) Handle(msg *mail.Msg) *mail.Msg {
 	switch m.config.Scheme {
 	case SchemePGPInline:
 		return m.pgpInline(msg)
-	default:
+	case SchemePGPMIME:
 		return m.pgpMIME(msg)
+	default:
+		m.config.Logger.Errorf("Unknown OpenPGP scheme. No action will be performed.")
+		return msg
 	}
 }
 

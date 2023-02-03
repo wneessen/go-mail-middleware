@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wneessen/go-mail-middleware/log"
+	"github.com/wneessen/go-mail/log"
 )
 
 // PGPScheme is an alias type for an int
@@ -51,7 +51,7 @@ type Config struct {
 	// Action represents the encryption/signing action that the Middlware should perform
 	Action Action
 	// Logger represents a log that satisfies the log.Logger interface
-	Logger *log.Logger
+	Logger log.Logger
 	// PrivKey represents the OpenPGP/GPG private key part used for signing the mail
 	PrivKey string
 	// PublicKey represents the OpenPGP/GPG public key used for encrypting the mail
@@ -140,14 +140,14 @@ func NewConfig(pr, pu string, o ...Option) (*Config, error) {
 
 	// Create a slog.TextHandler logger if none was provided
 	if c.Logger == nil {
-		c.Logger = log.New(os.Stderr, "openpgp", log.LevelWarn)
+		c.Logger = log.New(os.Stderr, log.LevelWarn)
 	}
 
 	return c, nil
 }
 
 // WithLogger sets a slog.Logger for the Config
-func WithLogger(l *log.Logger) Option {
+func WithLogger(l log.Logger) Option {
 	return func(c *Config) {
 		c.Logger = l
 	}

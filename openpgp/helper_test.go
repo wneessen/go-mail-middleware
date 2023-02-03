@@ -62,7 +62,6 @@ func TestMiddleware_processPlain(t *testing.T) {
 		{"Sign-only", ActionSign},
 	}
 	ts := "This is the test message"
-
 	for _, tt := range tests {
 		t.Run(tt.n, func(t *testing.T) {
 			mc, err := NewConfig(privKey, pubKey,
@@ -81,9 +80,11 @@ func TestMiddleware_processPlain(t *testing.T) {
 				pt, err := helper.DecryptMessageArmored(mw.config.PrivKey, []byte(mw.config.passphrase), ct)
 				if err != nil {
 					t.Errorf("processPlain failed. Decryption of message failed: %s", err)
+					return
 				}
 				if pt != ts {
 					t.Errorf("processPlain failed. Expected: %q, got: %q", ts, pt)
+					return
 				}
 			}
 			if tt.a == ActionEncryptAndSign {
@@ -91,18 +92,26 @@ func TestMiddleware_processPlain(t *testing.T) {
 					[]byte(mw.config.passphrase), ct)
 				if err != nil {
 					t.Errorf("processPlain failed. Decryption of message failed: %s", err)
+					return
 				}
 				if pt != ts {
 					t.Errorf("processPlain failed. Expected: %q, got: %q", ts, pt)
+					return
 				}
 			}
 			if tt.a == ActionSign {
+				if ct == "" {
+					t.Errorf("no cipher text found for verification")
+					return
+				}
 				pt, err := helper.VerifyCleartextMessageArmored(mw.config.PublicKey, ct, 0)
 				if err != nil {
 					t.Errorf("processPlain failed. Verification of message failed: %s", err)
+					return
 				}
 				if pt != ts {
 					t.Errorf("processPlain failed. Expected: %q, got: %q", ts, pt)
+					return
 				}
 			}
 		})
@@ -183,6 +192,10 @@ func TestMiddleware_processBinary(t *testing.T) {
 				}
 			}
 			if tt.a == ActionSign {
+				if ct == "" {
+					t.Errorf("no cipher text found for verification")
+					return
+				}
 				pt, err := helper.VerifyCleartextMessageArmored(mw.config.PublicKey, ct, 0)
 				if err != nil {
 					t.Errorf("processBinary failed. Verification of message failed: %s", err)

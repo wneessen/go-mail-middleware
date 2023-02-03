@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wneessen/go-mail-middleware/log"
+	"github.com/wneessen/go-mail/log"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -237,7 +237,7 @@ func TestNewConfigFromFiles_failed(t *testing.T) {
 }
 
 func TestNewConfig_WithLogger(t *testing.T) {
-	l := log.New(os.Stderr, "[openpgp-custom]", log.LevelWarn)
+	l := log.New(os.Stderr, log.LevelWarn)
 	mc, err := NewConfig(privKey, pubKey, WithLogger(l))
 	if err != nil {
 		t.Errorf("failed to create new config: %s", err)
