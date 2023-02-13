@@ -10,6 +10,8 @@ import (
 	"mime/multipart"
 	"strings"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+
 	"github.com/ProtonMail/gopenpgp/v2/armor"
 	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/helper"
@@ -122,28 +124,38 @@ func (m *Middleware) pgpMIME(msg *mail.Msg) *mail.Msg {
 		m.config.Logger.Errorf("failed to read mail body into memory: %s", err)
 		return msg
 	}
-	ct, err = m.processPlain(mb)
-	if err != nil {
-		m.config.Logger.Errorf("failed to encrypt message part: %s", err)
-		return msg
-	}
-	buf.Reset()
-	buf.WriteString(ct)
-	for _, p := range msg.GetParts() {
-		p.Delete()
-	}
-	msg.AddAlternativeString(mail.TypePGPEncrypted, "Version: 1"+mail.SingleNewLine,
-		mail.WithPartContentDescription("PGP/MIME version identification"),
-		mail.WithPartEncoding(mail.NoEncoding))
-	msg.SetEmbeds(nil)
-	msg.SetAttachements(nil)
-	msg.EmbedReader("encrypted.asc", &buf,
-		mail.WithFileDescription("OpenPGP encrypted message"),
-		mail.WithFileEncoding(mail.NoEncoding), mail.WithFileContentType(mail.TypeAppOctetStream))
 	switch m.config.Action {
 	case ActionEncrypt, ActionEncryptAndSign:
+		ct, err = m.processPlain(mb)
+		if err != nil {
+			m.config.Logger.Errorf("failed to encrypt message part: %s", err)
+			return msg
+		}
+		buf.Reset()
+		buf.WriteString(ct)
+		for _, p := range msg.GetParts() {
+			p.Delete()
+		}
+		msg.SetEmbeds(nil)
+		msg.SetAttachements(nil)
+		msg.AddAlternativeString(mail.TypePGPEncrypted, "Version: 1"+mail.SingleNewLine,
+			mail.WithPartContentDescription("PGP/MIME version identification"),
+			mail.WithPartEncoding(mail.NoEncoding))
+		msg.EmbedReader("encrypted.asc", &buf,
+			mail.WithFileDescription("OpenPGP encrypted message"),
+			mail.WithFileEncoding(mail.NoEncoding), mail.WithFileContentType(mail.TypeAppOctetStream))
 		msg.SetPGPType(mail.PGPEncrypt)
 	case ActionSign:
+		ct, err = m.signPlainDetached(mb)
+		if err != nil {
+			m.config.Logger.Errorf("failed to encrypt message part: %s", err)
+			return msg
+		}
+		buf.Reset()
+		buf.WriteString(ct)
+		msg.AttachReader("signature.asc", &buf,
+			mail.WithFileContentType(mail.TypePGPSignature), mail.WithFileEncoding(mail.NoEncoding),
+			mail.WithFileDescription("OpenPGP digital signature"))
 		msg.SetPGPType(mail.PGPSignature)
 	}
 	return msg
@@ -184,8 +196,6 @@ func (m *Middleware) processPlain(d string) (string, error) {
 	case ActionEncryptAndSign:
 		ct, err = helper.EncryptSignMessageArmored(m.config.PublicKey, m.config.PrivKey,
 			[]byte(m.config.passphrase), d)
-	case ActionSign:
-		return helper.SignCleartextMessageArmored(m.config.PrivKey, []byte(m.config.passphrase), d)
 	default:
 		return "", ErrUnsupportedAction
 	}
@@ -193,6 +203,31 @@ func (m *Middleware) processPlain(d string) (string, error) {
 		return ct, err
 	}
 	return m.reArmorMessage(ct)
+}
+
+func (m *Middleware) signPlainDetached(d string) (string, error) {
+	msg := crypto.NewPlainMessageFromString(d)
+	pko, err := crypto.NewKeyFromArmored(m.config.PrivKey)
+	if err != nil {
+		return "", err
+	}
+	uko, err := pko.Unlock([]byte(m.config.passphrase))
+	if err != nil {
+		return "", err
+	}
+	skr, err := crypto.NewKeyRing(uko)
+	if err != nil {
+		return "", err
+	}
+	sig, err := skr.SignDetached(msg)
+	if err != nil {
+		return "", err
+	}
+	pt, err := sig.GetArmored()
+	if err != nil {
+		return "", err
+	}
+	return m.reArmorMessage(pt)
 }
 
 // reArmorMessage unarmors the PGP message and re-armors it with the package specific
