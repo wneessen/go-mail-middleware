@@ -5,9 +5,10 @@ SPDX-FileCopyrightText: 2023 Winni Neessen <winni@neessen.dev>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-## WIP Note
+## Use with caution
 
-This middleware is still under development and not fully functional yet. For it to properly 
+While this middleware is mostly complete, it has not been properly tested by a large user base
+and their corresponding edge-cases. Please keep this in mind when using this middlware.
 work, you will need the main branch of the go-mail package. The latest releases do not provide
 all the functionality required for this middleware to work.
 
@@ -20,7 +21,7 @@ before sending it.
 
 This middleware supports two PGP encoding schemes:
 * PGP/Inline
-* PGP/MIME (currently not supported, yet)
+* PGP/MIME
 
 *Please note, that PGP/Inline does only work with plain text mails. Any mail message
 (alternative) body part of type `text/html` will be discarded in the final output 
