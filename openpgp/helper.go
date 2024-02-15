@@ -60,7 +60,10 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 			m.config.Logger.Errorf("failed to encrypt attachment: %s", err)
 			continue
 		}
-		msg.EmbedReader(f.Name, bytes.NewReader([]byte(b)))
+		if err := msg.EmbedReader(f.Name, bytes.NewReader([]byte(b))); err != nil {
+			m.config.Logger.Errorf("failed to embed reader: %s", err)
+			continue
+		}
 		buf.Reset()
 	}
 	af := msg.GetAttachments()
@@ -76,7 +79,10 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 			m.config.Logger.Errorf("failed to encrypt attachment: %s", err)
 			continue
 		}
-		msg.AttachReader(f.Name, bytes.NewReader([]byte(b)))
+		if err := msg.AttachReader(f.Name, bytes.NewReader([]byte(b))); err != nil {
+			m.config.Logger.Errorf("failed to attach reader: %s", err)
+			continue
+		}
 		buf.Reset()
 	}
 
