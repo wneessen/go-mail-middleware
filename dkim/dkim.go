@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -75,14 +76,19 @@ func NewFromEd25519Key(k []byte, sc *SignerConfig) (*Middleware, error) {
 
 // Handle is the handler method that satisfies the mail.Middleware interface
 func (d Middleware) Handle(m *mail.Msg) *mail.Msg {
-	ibuf := bytes.Buffer{}
-	_, err := m.WriteToSkipMiddleware(&ibuf, Type)
+	// If no boundary is set for the mail.Msg we need to set our own fixed boundary, otherwise
+	// a new boundary will bet generated after the middleware has been applied and therfore
+	// the body hash will be altered
+	// TODO: Add a GetBoundary() method to go-mail, so we don't override a already set boundary
+	m.SetBoundary(randomBoundary())
+	ibuf := bytes.NewBuffer(nil)
+	_, err := m.WriteToSkipMiddleware(ibuf, Type)
 	if err != nil {
 		return m
 	}
 
 	var obuf bytes.Buffer
-	if err := dkim.Sign(&obuf, &ibuf, d.so); err != nil {
+	if err := dkim.Sign(&obuf, ibuf, d.so); err != nil {
 		return m
 	}
 	br := bufio.NewReader(&obuf)
@@ -156,4 +162,14 @@ func extractDKIMHeader(br *bufio.Reader) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+// randomBoundary generates boundary in case no boundary is set yet
+func randomBoundary() string {
+	var buf [30]byte
+	_, err := io.ReadFull(rand.Reader, buf[:])
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%x", buf[:])
 }
