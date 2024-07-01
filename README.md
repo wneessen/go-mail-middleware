@@ -24,5 +24,5 @@ while keeping `go-mail` itself dependancy free.
 ### List of currently supported middlewares
 
 * [dkim](dkim): DKIM (DomainKeys Identified Mail) middleware to sign mail messages
-* [openpgp](openpgp): OpenPGP middleware to digitally encrypt and sign mail messages
+* [openpgp](openpgp): OpenPGP middleware to digitally encrypt and sign mail messages (Experimental/Development on hold)
 * [subject_capitalize](subject_capitalize): Capitalizes the subject of the message matching the given language
