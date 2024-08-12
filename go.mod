@@ -10,5 +10,5 @@ require (
 	github.com/ProtonMail/gopenpgp/v2 v2.7.5
 	github.com/emersion/go-msgauth v0.6.8
 	github.com/wneessen/go-mail v0.4.2
-	golang.org/x/text v0.16.0
+	golang.org/x/text v0.17.0
 )
