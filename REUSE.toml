@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: Copyright (c) 2024 The go-mail Authors
+#
+# SPDX-License-Identifier: MIT
+
+version = 1
+SPDX-PackageName = "go-mail-middleware"
+SPDX-PackageSupplier = "Winni Neessen <winni@neessen.dev>"
+SPDX-PackageDownloadLocation = "https://github.com/wneessen/go-mail-middleware"
+
+[[annotations]]
+path = "go.sum"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Winni Neessen <winni@neessen.dev>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ".idea/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Winni Neessen <winni@neessen.dev>"
+SPDX-License-Identifier = "CC0-1.0"
