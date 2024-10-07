@@ -67,7 +67,7 @@ func (m *Middleware) pgpInline(msg *mail.Msg) *mail.Msg {
 		buf.Reset()
 	}
 	af := msg.GetAttachments()
-	msg.SetAttachements(nil)
+	msg.SetAttachments(nil)
 	for _, f := range af {
 		_, err := f.Writer(&buf)
 		if err != nil {
