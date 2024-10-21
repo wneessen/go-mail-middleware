@@ -9,7 +9,7 @@ go 1.20
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.7.5
 	github.com/emersion/go-msgauth v0.6.8
-	github.com/wneessen/go-mail v0.5.0
+	github.com/wneessen/go-mail v0.5.1
 	golang.org/x/text v0.19.0
 )
 
