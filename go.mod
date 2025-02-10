@@ -10,7 +10,7 @@ require (
 	github.com/ProtonMail/gopenpgp/v2 v2.8.2
 	github.com/emersion/go-msgauth v0.6.8
 	github.com/wneessen/go-mail v0.6.1
-	golang.org/x/text v0.21.0
+	golang.org/x/text v0.22.0
 )
 
 require (
