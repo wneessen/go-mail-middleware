@@ -11,7 +11,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
+	"fmt"
+	"io"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -230,6 +234,7 @@ func TestMiddleware_Handle(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to generate new config: %s", err)
 	}
+	co.HeaderFields = []string{"From"}
 	mw, err := NewFromRSAKey([]byte(rsaTestKey), co)
 	if err != nil {
 		t.Errorf("failed to generate new middleware: %s", err)
@@ -244,22 +249,28 @@ func TestMiddleware_Handle(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed writing message to memory: %s", err)
 	}
+
+	verifyEmailWithDKIM(t, &buf, mw.so.Signer)
 }
 
-func TestMiddleware_Boundary(t *testing.T) {
+func TestMiddleware_Handle_Multipart(t *testing.T) {
 	co, err := NewConfig(TestDomain, TestSelector)
 	if err != nil {
 		t.Errorf("failed to generate new config: %s", err)
 	}
+	co.HeaderFields = []string{"From"}
 	mw, err := NewFromRSAKey([]byte(rsaTestKey), co)
 	if err != nil {
 		t.Errorf("failed to generate new middleware: %s", err)
 	}
 
-	// Create an email without a boundary
 	m := mail.NewMsg(mail.WithMiddleware(mw))
-	m.Subject("Mail without a boundary")
-	m.SetBodyString(mail.TypeTextPlain, "Body")
+	m.Subject("This is a subject")
+	m.SetDate()
+
+	m.SetBodyString(mail.TypeTextPlain, "Text body")
+	m.AddAlternativeString(mail.TypeTextHTML, "HTML body")
+	m.AttachReader("file", strings.NewReader("body"))
 
 	buf := bytes.Buffer{}
 	_, err = m.WriteTo(&buf)
@@ -267,54 +278,26 @@ func TestMiddleware_Boundary(t *testing.T) {
 		t.Errorf("failed writing message to memory: %s", err)
 	}
 
-	// Get boundary after processing
-	if m.GetBoundary() == "" {
-		t.Errorf("Random boundary was not auto-generated")
+	// Traversing the message via API is tedious and we may miss something
+	ctRegex := regexp.MustCompile("(?m)^Content-Type: multipart/[^;]+;\\s*boundary=(\\w+)")
+	ctMatches := ctRegex.FindAllStringSubmatch(buf.String(), -1)
+	if len(ctMatches) == 0 {
+		t.Errorf("Email should be multipart")
 	}
 
-	if _, err := dkim.Verify(&buf); err != nil {
-		t.Errorf("Verification failed: %s", err)
+	// Find duplicates in boundary matches
+	boundarySet := map[string]struct{}{}
+	for _, match := range ctMatches {
+		boundary := match[1] // First group match
+		if _, ok := boundarySet[boundary]; ok {
+			t.Errorf("Duplicate multipart boundary: %q", boundary)
+		} else {
+			boundarySet[boundary] = struct{}{}
+		}
 	}
 
-	// Reset to test mail with a boundary
-	buf.Reset()
-	m.Reset()
-
-	// Create an email with a boundary
-	m.Subject("Mail with a boundary")
-	m.SetBodyString(mail.TypeTextPlain, "Body")
-
-	// Set a custom boundary
-	customBoundary := "custom-boundary-12345"
-	m.SetBoundary(customBoundary)
-
-	// Get boundary before processing
-	boundaryBefore := m.GetBoundary()
-
-	_, err = m.WriteTo(&buf)
-	if err != nil {
-		t.Errorf("failed writing message to memory: %s", err)
-	}
-
-	// Get boundary after processing
-	boundaryAfter := m.GetBoundary()
-
-	if boundaryBefore != customBoundary {
-		t.Errorf("boundary before processing was not preserved. Expected: %s, got: %s", customBoundary, boundaryBefore)
-	}
-
-	if boundaryAfter != customBoundary {
-		t.Errorf("boundary after processing was not preserved. Expected: %s, got: %s", customBoundary, boundaryAfter)
-	}
-
-	if boundaryBefore != boundaryAfter {
-		t.Errorf("boundary changed during processing. Before: %s, After: %s", boundaryBefore, boundaryAfter)
-	}
-
-	// Verify that the signature matches body
-	if _, err := dkim.Verify(&buf); err != nil {
-		t.Errorf("Verification failed: %s", err)
-	}
+	// DKIM signature should be valid
+	verifyEmailWithDKIM(t, &buf, mw.so.Signer)
 }
 
 func TestExtractDKIMHeader(t *testing.T) {
@@ -343,5 +326,37 @@ func TestExtractDKIMHeader(t *testing.T) {
 	_, err = extractDKIMHeader(br)
 	if err != nil {
 		t.Errorf("failed to extract DKIM header: %s", err)
+	}
+}
+
+// Decode and verify DKIM signature for reader of incoming email
+func verifyEmailWithDKIM(t *testing.T, r io.Reader, sk crypto.Signer) {
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(sk.Public())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pubKeyB64 := base64.StdEncoding.EncodeToString(pubKeyBytes)
+	verifications, err := dkim.VerifyWithOptions(r, &dkim.VerifyOptions{
+		LookupTXT: func(domain string) ([]string, error) {
+			if domain == "mail._domainkey.test.tld" {
+				return []string{fmt.Sprintf("v=DKIM1; k=rsa; p=%s", pubKeyB64)}, nil
+			}
+			return nil, fmt.Errorf("DNS record not found for domain: %s", domain)
+		},
+	})
+
+	if err != nil {
+		t.Errorf("DKIM Verification error: %s", err)
+	} else if len(verifications) == 0 {
+		t.Errorf("DKIM Verification missing")
+	}
+
+	for _, v := range verifications {
+		if v.Err == nil {
+			t.Logf("Valid DKIM signature for domain: %s", v.Domain)
+		} else {
+			t.Errorf("Invalid DKIM signature for domain %s: %s", v.Domain, v.Err)
+		}
 	}
 }
