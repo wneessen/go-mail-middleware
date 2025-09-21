@@ -270,7 +270,9 @@ func TestMiddleware_Handle_Multipart(t *testing.T) {
 
 	m.SetBodyString(mail.TypeTextPlain, "Text body")
 	m.AddAlternativeString(mail.TypeTextHTML, "HTML body")
-	m.AttachReader("file", strings.NewReader("body"))
+	if err = m.AttachReader("file", strings.NewReader("body")); err != nil {
+		t.Errorf("failed to attach file: %s", err)
+	}
 
 	buf := bytes.Buffer{}
 	_, err = m.WriteTo(&buf)
@@ -279,7 +281,7 @@ func TestMiddleware_Handle_Multipart(t *testing.T) {
 	}
 
 	// Traversing the message via API is tedious and we may miss something
-	ctRegex := regexp.MustCompile("(?m)^Content-Type: multipart/[^;]+;\\s*boundary=(\\w+)")
+	ctRegex := regexp.MustCompile(`(?m)^Content-Type: multipart/[^;]+;\s*boundary=(\w+)`)
 	ctMatches := ctRegex.FindAllStringSubmatch(buf.String(), -1)
 	if len(ctMatches) == 0 {
 		t.Errorf("Email should be multipart")

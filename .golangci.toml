@@ -1,11 +1,52 @@
-## SPDX-FileCopyrightText: 2022 Winni Neessen <winni@neessen.dev>
-##
-## SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: The go-mail Authors
+#
+# SPDX-License-Identifier: MIT
+
+version = '2'
 
 [run]
-go = "1.16"
+go = '1.24'
 tests = true
 
 [linters]
-enable = ["stylecheck", "whitespace", "containedctx", "contextcheck", "decorder",
-    "errname", "errorlint", "gofmt", "gofumpt"]
+enable = [
+  'containedctx',
+  'contextcheck',
+  'decorder',
+  'errname',
+  'errorlint',
+  'staticcheck',
+  'whitespace'
+]
+
+[linters.exclusions]
+generated = 'lax'
+presets = [
+  'comments',
+  'common-false-positives',
+  'legacy',
+  'std-error-handling'
+]
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]
+
+[formatters]
+enable = [
+  'gofmt',
+  'gofumpt'
+]
+
+[formatters.exclusions]
+generated = 'lax'
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]
+
+[[linters.exclusions.rules]]
+path = "examples/(.+)\\.go"
+linters = ["unused"]

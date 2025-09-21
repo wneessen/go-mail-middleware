@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2022 Winni Neessen <winni@neessen.dev>
+# SPDX-FileCopyrightText: The go-mail Authors
 #
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: MIT
 
 name: golangci-lint
 on:
@@ -15,35 +15,28 @@ permissions:
   # Optional: allow read access to pull request. Use with `only-new-issues` option.
   # pull-requests: read
 jobs:
-  golangci:
-    name: lint
+  lint:
+    name: golangci-lint (${{ matrix.go }})
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-lint-${{ matrix.go }}
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        go: [ '1.25' ]
     steps:
-      - uses: actions/setup-go@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
-          go-version: 1.23
-      - uses: actions/checkout@v3
+          egress-policy: audit
+      - name: Setup go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+      - name: Checkout Code
+        uses: actions/checkout@61b9e3751b92087fd0b06925ba6dd6314e06f089 # master
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
         with:
-          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: latest
-
-          # Optional: working directory, useful for monorepos
-          # working-directory: somedir
-
-          # Optional: golangci-lint command line arguments.
-          # args: --issues-exit-code=0
-
-          # Optional: show only new issues if it's a pull request. The default value is `false`.
-          # only-new-issues: true
-
-          # Optional: if set to true then the all caching functionality will be complete disabled,
-          #           takes precedence over all other caching options.
-          # skip-cache: true
-
-          # Optional: if set to true then the action don't cache or restore ~/go/pkg.
-          # skip-pkg-cache: true
-
-          # Optional: if set to true then the action don't cache or restore ~/.cache/go-build.
-          # skip-build-cache: true
