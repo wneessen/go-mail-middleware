@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/emersion/go-msgauth/dkim"
 	"github.com/wneessen/go-mail"
 )
 
@@ -242,6 +243,77 @@ func TestMiddleware_Handle(t *testing.T) {
 	_, err = m.WriteTo(&buf)
 	if err != nil {
 		t.Errorf("failed writing message to memory: %s", err)
+	}
+}
+
+func TestMiddleware_Boundary(t *testing.T) {
+	co, err := NewConfig(TestDomain, TestSelector)
+	if err != nil {
+		t.Errorf("failed to generate new config: %s", err)
+	}
+	mw, err := NewFromRSAKey([]byte(rsaTestKey), co)
+	if err != nil {
+		t.Errorf("failed to generate new middleware: %s", err)
+	}
+
+	// Create an email without a boundary
+	m := mail.NewMsg(mail.WithMiddleware(mw))
+	m.Subject("Mail without a boundary")
+	m.SetBodyString(mail.TypeTextPlain, "Body")
+
+	buf := bytes.Buffer{}
+	_, err = m.WriteTo(&buf)
+	if err != nil {
+		t.Errorf("failed writing message to memory: %s", err)
+	}
+
+	// Get boundary after processing
+	if m.GetBoundary() == "" {
+		t.Errorf("Random boundary was not auto-generated")
+	}
+
+	if _, err := dkim.Verify(&buf); err != nil {
+		t.Errorf("Verification failed: %s", err)
+	}
+
+	// Reset to test mail with a boundary
+	buf.Reset()
+	m.Reset()
+
+	// Create an email with a boundary
+	m.Subject("Mail with a boundary")
+	m.SetBodyString(mail.TypeTextPlain, "Body")
+
+	// Set a custom boundary
+	customBoundary := "custom-boundary-12345"
+	m.SetBoundary(customBoundary)
+
+	// Get boundary before processing
+	boundaryBefore := m.GetBoundary()
+
+	_, err = m.WriteTo(&buf)
+	if err != nil {
+		t.Errorf("failed writing message to memory: %s", err)
+	}
+
+	// Get boundary after processing
+	boundaryAfter := m.GetBoundary()
+
+	if boundaryBefore != customBoundary {
+		t.Errorf("boundary before processing was not preserved. Expected: %s, got: %s", customBoundary, boundaryBefore)
+	}
+
+	if boundaryAfter != customBoundary {
+		t.Errorf("boundary after processing was not preserved. Expected: %s, got: %s", customBoundary, boundaryAfter)
+	}
+
+	if boundaryBefore != boundaryAfter {
+		t.Errorf("boundary changed during processing. Before: %s, After: %s", boundaryBefore, boundaryAfter)
+	}
+
+	// Verify that the signature matches body
+	if _, err := dkim.Verify(&buf); err != nil {
+		t.Errorf("Verification failed: %s", err)
 	}
 }
 
