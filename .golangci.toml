@@ -42,3 +42,7 @@ paths = [
   'builtin$',
   'examples$'
 ]
+
+[linters.exclusions.rules]
+path = "examples/(.+)\\.go"
+linters = ["unused"]
