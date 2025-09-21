@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ed25519"
-	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -157,14 +156,4 @@ func extractDKIMHeader(br *bufio.Reader) (string, error) {
 		}
 	}
 	return "", nil
-}
-
-// randomBoundary generates boundary in case no boundary is set yet
-func randomBoundary() string {
-	var buf [30]byte
-	_, err := io.ReadFull(rand.Reader, buf[:])
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%x", buf[:])
 }
