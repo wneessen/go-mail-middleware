@@ -79,8 +79,9 @@ func (d Middleware) Handle(m *mail.Msg) *mail.Msg {
 	// If no boundary is set for the mail.Msg we need to set our own fixed boundary, otherwise
 	// a new boundary will bet generated after the middleware has been applied and therfore
 	// the body hash will be altered
-	// TODO: Add a GetBoundary() method to go-mail, so we don't override a already set boundary
-	m.SetBoundary(randomBoundary())
+	if m.GetBoundary() == "" {
+		m.SetBoundary(randomBoundary())
+	}
 	ibuf := bytes.NewBuffer(nil)
 	_, err := m.WriteToSkipMiddleware(ibuf, Type)
 	if err != nil {
