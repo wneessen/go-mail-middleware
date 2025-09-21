@@ -1,7 +1,7 @@
 <!--
-SPDX-FileCopyrightText: 2022 Winni Neessen <winni@neessen.dev>
+SPDX-FileCopyrightText: The go-mail Authors
 
-SPDX-License-Identifier: CC0-1.0
+SPDX-License-Identifier: MIT
 -->
 
 # A collection of message middlewares for go-mail
