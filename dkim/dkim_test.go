@@ -10,6 +10,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -329,6 +330,14 @@ func TestExtractDKIMHeader(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to extract DKIM header: %s", err)
 	}
+}
+
+// pemForRSAKey converts an RSA private key to a PEM byte slice for reuse in tests.
+func pemForRSAKey(key *rsa.PrivateKey) []byte {
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
 }
 
 // Decode and verify DKIM signature for reader of incoming email
