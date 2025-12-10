@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-module github.com/wneessen/go-mail-middleware
+module github.com/thib-d/go-mail-middleware
 
 go 1.24.0
 
@@ -10,7 +10,8 @@ require (
 	github.com/ProtonMail/gopenpgp/v2 v2.9.0
 	github.com/emersion/go-msgauth v0.7.0
 	github.com/wneessen/go-mail v0.7.2
-	golang.org/x/text v0.31.0
+	github.com/wneessen/go-mail-middleware v0.1.1
+	golang.org/x/text v0.32.0
 )
 
 require (
@@ -18,8 +19,8 @@ require (
 	github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/crypto v0.45.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
 )
 
 replace github.com/wneessen/go-mail => ../go-mail
