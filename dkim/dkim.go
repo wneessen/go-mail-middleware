@@ -91,7 +91,7 @@ func (d Middleware) Handle(m *mail.Msg) *mail.Msg {
 		return m
 	}
 	if h != "" {
-		m.SetGenHeaderPreformatted("DKIM-Signature", h)
+		m.AddGenHeaderPreformatted("DKIM-Signature", h)
 	}
 	return m
 }
