@@ -19,8 +19,8 @@ package main
 import (
 	"log"
 
-	"github.com/wneessen/go-mail"
-	"github.com/wneessen/go-mail-middleware/dkim"
+	"github.com/thib-d/go-mail"
+	"github.com/thib-d/go-mail-middleware/dkim"
 )
 
 const rsaKey = `-----BEGIN RSA PRIVATE KEY-----

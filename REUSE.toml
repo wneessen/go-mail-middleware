@@ -5,7 +5,7 @@
 version = 1
 SPDX-PackageName = "go-mail-middleware"
 SPDX-PackageSupplier = "Winni Neessen <winni@neessen.dev>"
-SPDX-PackageDownloadLocation = "https://github.com/wneessen/go-mail-middleware"
+SPDX-PackageDownloadLocation = "https://github.com/thib-d/go-mail-middleware"
 
 [[annotations]]
 path = "go.sum"

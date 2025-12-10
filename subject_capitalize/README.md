@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/wneessen/go-mail"
-	"github.com/wneessen/go-mail-middleware/subject_capitalize"
+	"github.com/thib-d/go-mail"
+	"github.com/thib-d/go-mail-middleware/subject_capitalize"
 	"golang.org/x/text/language"
 	"os"
 )

@@ -37,8 +37,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/wneessen/go-mail"
-	"github.com/wneessen/go-mail-middleware/openpgp"
+	"github.com/thib-d/go-mail"
+	"github.com/thib-d/go-mail-middleware/openpgp"
 )
 
 const pubKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----

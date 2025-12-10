@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wneessen/go-mail-middleware/log"
+	"github.com/thib-d/go-mail-middleware/log"
 )
 
 // PGPScheme is an alias type for an int

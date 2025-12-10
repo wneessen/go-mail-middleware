@@ -9,8 +9,8 @@ go 1.24.0
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.9.0
 	github.com/emersion/go-msgauth v0.7.0
-	github.com/wneessen/go-mail v0.7.2
-	github.com/wneessen/go-mail-middleware v0.1.1
+	github.com/thib-d/go-mail v0.7.2
+	github.com/thib-d/go-mail-middleware v0.1.1
 	golang.org/x/text v0.32.0
 )
 
@@ -23,4 +23,4 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 )
 
-replace github.com/wneessen/go-mail => ../go-mail
+replace github.com/thib-d/go-mail => ../go-mail

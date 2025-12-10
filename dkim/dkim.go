@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/emersion/go-msgauth/dkim"
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 // Middleware is the middleware struct for the DKIM middleware

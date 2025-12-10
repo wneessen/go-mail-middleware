@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/emersion/go-msgauth/dkim"
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 const (

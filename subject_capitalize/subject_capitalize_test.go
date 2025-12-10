@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 	"golang.org/x/text/language"
 )
 

@@ -6,7 +6,7 @@ import (
 	"crypto/rsa"
 	"testing"
 
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 // TestDoubleDKIMHeaders ensures two DKIM middlewares render two DKIM-Signature headers.
