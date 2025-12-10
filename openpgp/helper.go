@@ -10,7 +10,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/armor"
 	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/helper"
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 const (

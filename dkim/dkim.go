@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/emersion/go-msgauth/dkim"
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 // Middleware is the middleware struct for the DKIM middleware
@@ -90,9 +90,8 @@ func (d Middleware) Handle(m *mail.Msg) *mail.Msg {
 	if err != nil {
 		return m
 	}
-	if h != "" {
-		m.SetGenHeaderPreformatted("DKIM-Signature", h)
-	}
+	m.AddGenHeaderPreformatted("DKIM-Signature", h)
+
 	return m
 }
 

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 // pubkey is a dedicated OpenPGP key for testing this go-middleware. This key is

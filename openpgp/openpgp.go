@@ -7,7 +7,7 @@
 package openpgp
 
 import (
-	"github.com/wneessen/go-mail"
+	"github.com/thib-d/go-mail"
 )
 
 const (

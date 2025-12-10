@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wneessen/go-mail-middleware/log"
+	"github.com/thib-d/go-mail-middleware/log"
 )
 
 func TestNewConfig(t *testing.T) {
