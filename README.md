@@ -4,13 +4,26 @@ SPDX-FileCopyrightText: The go-mail Authors
 SPDX-License-Identifier: MIT
 -->
 
+> [!IMPORTANT]
+> ## This repository has been sunset and archived
+>
+> `go-mail-middleware` originally served as a starting point and reference implementation for [go-mail](https://github.com/wneessen/go-mail) users who
+> wanted to build their own message middlewares. Since then most of the middlewares provided here are now natively supported in go-mail itself.
+>
+> The `mail.Middleware` interface and the `mail.WithMiddleware()` option still exist in go-mail, so you can absolutely keep writing your own custom
+> middlewares - but there is no longer a good reason to maintain this separate collection.
+>
+> What this means:
+>
+> - **The repository is now archived and read-only.** All existing code will remain online for reference and for anyone who still depends on it, but
+>   it will not receive any further updates, bug fixes, or new features.
+> - **You don't need to migrate anything urgently** - existing imports will continue to work. However, we recommend checking whether the functionality
+>   you need is already built into [go-mail](https://github.com/wneessen/go-mail) directly, and switching to the native implementation where available.
+> - **Questions and discussion** should be directed to the main [go-mail](https://github.com/wneessen/go-mail) project.
+>
+> Thank you to everyone who used, contributed to, and drew inspiration from this repository. ❤️
+
 # A collection of message middlewares for go-mail
-[![GoDoc](https://godoc.org/github.com/wneessen/go-mail-middleware?status.svg)](https://pkg.go.dev/github.com/wneessen/go-mail-middleware)
-[![codecov](https://codecov.io/gh/wneessen/go-mail-middleware/branch/main/graph/badge.svg?token=1XC87Z6QX4)](https://codecov.io/gh/wneessen/go-mail-middleware)
-[![Go Report Card](https://goreportcard.com/badge/github.com/wneessen/go-mail-middleware)](https://goreportcard.com/report/github.com/wneessen/go-mail-middleware)
-[![#go-mail on Discord](https://img.shields.io/badge/Discord-%23gomail-blue.svg)](https://discord.gg/dbfQyC4s)
-[![REUSE status](https://api.reuse.software/badge/github.com/wneessen/go-mail-middleware)](https://api.reuse.software/info/github.com/wneessen/go-mail-middleware)
-<a href="https://ko-fi.com/D1D24V9IX"><img src="https://uploads-ssl.webflow.com/5c14e387dab576fe667689cf/5cbed8a4ae2b88347c06c923_BuyMeACoffee_blue.png" height="20" alt="buy ma a coffee"></a>
 
 ### What is this?
 
